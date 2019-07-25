@@ -4,7 +4,6 @@ library(structSSI)
 library(tidyverse)
 library(phyloseq)
 library(igraph)
-library(yatah)
 library(ape)
 
 #### Data ####

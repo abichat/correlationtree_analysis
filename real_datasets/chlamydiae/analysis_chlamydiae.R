@@ -38,7 +38,6 @@ EL_cor <-
   tree_cor %>% 
   as.igraph() %>% 
   get.edgelist()
-head(EL_cor)
 
 pval_cor <- treePValues(EL_cor, abundances, environments)
 hpval_cor <- hFDR.adjust(pval_cor, EL_cor, alpha = alpha)
@@ -65,7 +64,8 @@ detected_cor <-
   filter(cor < alpha) %>%
   pull(OTU)
 
-## Results
+
+#### Results ####
 
 # A posteriori FDR control for phylogenetic correction
 1.44 * EstimatedHFDRControl(hpval_phy)$tip

@@ -15,6 +15,7 @@ Package versions used in these analysis:
 | Package         | Version    |
 | :-------------- | :--------- |
 | ape             | 5.3        |
+| biomformat      | 1.12.0     |
 | correlationtree | 0.0.0.9002 |
 | cowplot         | 1.0.0      |
 | dplyr           | 0.8.3      |
@@ -22,6 +23,7 @@ Package versions used in these analysis:
 | ggplot2         | 3.2.0      |
 | ggtree          | 1.16.0     |
 | igraph          | 1.2.4.1    |
+| phyloseq        | 1.28.0     |
 | purrr           | 0.3.2      |
 | readr           | 1.3.1      |
 | scales          | 1.0.0      |
