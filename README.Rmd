@@ -13,11 +13,13 @@ knitr::opts_chunk$set(
 # Correlation Tree Analysis
 
 <!-- badges: start -->
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/ba04cd22d16047bb831608b9a7a6702f)](https://www.codacy.com/app/abichat/correlationtree_analysis?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=abichat/correlationtree_analysis&amp;utm_campaign=Badge_Grade)
 [![Last-changedate](https://img.shields.io/badge/last%20change-`r gsub('-', '--', Sys.Date())`-yellowgreen.svg)](/commits/master)
 <!-- badges: end -->
 
 This repository contains analysis done in the paper…
 
+Some results might be slightly different due to seed choice.
 
 Package versions used in these analysis:
 ```{r used_packages, echo=FALSE, message=FALSE}
