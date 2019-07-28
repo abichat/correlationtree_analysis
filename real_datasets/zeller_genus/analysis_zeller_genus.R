@@ -1,6 +1,6 @@
 library(curatedMetagenomicData)
 library(correlationtree)
-library(StructFDR)
+# library(StructFDR)
 library(tidyverse)
 library(yatah)
 
@@ -39,6 +39,8 @@ total_count <-
 
 df_sample$count <- total_count
 
+prevalence_min <- 0.05
+
 clades_to_keep <-
   df_abund %>%
   select(-taxonomy) %>%
@@ -46,7 +48,7 @@ clades_to_keep <-
   group_by(clade) %>%
   summarise(P = mean(Count > 0), N = sum(Count)) %>%
   arrange(P) %>%
-  filter(P > 0.05) %>%
+  filter(P > prevalence_min) %>%
   pull(clade)
 
 df_abund <- filter(df_abund, clade %in% clades_to_keep)
@@ -104,6 +106,7 @@ Y <- as_factor(df_sample$study_condition)
 O <- df_sample$count
 
 ## TreeFDR
+
 fdrobj_cor <- my_TreeFDR(X = X, Y = Y, O = O, tree = tree_cor)
 fdrobj_tax <- my_TreeFDR(X = X, Y = Y, O = O, tree = tree_tax)
 fdrobj_rand_cor <- my_TreeFDR(X = X, Y = Y, O = O, tree = tree_rand_cor)
@@ -182,8 +185,8 @@ ggplot(df_roc) +
   geom_curve(data = df_arrow, aes(x = x1, y = y1, xend = x2, yend = y2),
              arrow = arrow(length = unit(0.1, "inch")),
              size = 0.4, curvature = -0.2, color = "grey20") +
-  geom_text(x = 0.032, y = 17, label = 16, size = 7.5) +
   geom_text(x = 0.068, y = 13, label = 14, size = 7.5) +
+  geom_text(x = 0.032, y = 17, label = 16, size = 7.5) +
   scale_color_manual(values = color_values) +
   scale_linetype_manual(values = linetype_values) +
   labs(x = "Threshold", y = "Number of detected genera",
@@ -196,5 +199,6 @@ ggplot(df_roc) +
         legend.title = element_text(size = 20),
         legend.text = element_text(size = 19))
 
-ggsave("real_datasets/zeller_genus/zeller_genus-number_detected.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("real_datasets/zeller_genus/zeller_genus-number_detected.png", 
+       width = 7.5, height = 5, dpi = "retina")
 
