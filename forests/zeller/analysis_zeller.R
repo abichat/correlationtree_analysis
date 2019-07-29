@@ -1,5 +1,5 @@
+library(curatedMetagenomicData)
 library(correlationtree)
-library(biomformat)
 library(tidyverse)
 library(broom)
 library(furrr)
@@ -13,61 +13,68 @@ plan(multicore)
 
 #### Data ####
 
-biom <- read_biom("forests/ravel/ravel.biom")
+exprSet <-
+  "ZellerG_2014.metaphlan_bugs_list.stool" %>%
+  curatedMetagenomicData(dryrun = FALSE, counts = TRUE) %>%
+  mergeData()
 
-## Taxonomy
 
-taxtable <-
-  biom %>% 
-  observation_metadata() %>% 
-  as("matrix") %>% 
-  as_tibble(rownames = "OTU") %>% 
-  filter(taxonomy1 %in% "Bacteria") %>% 
-  select(OTU, kingdom = taxonomy1, phylum = taxonomy2, class = taxonomy3, 
-         order = taxonomy4, family = taxonomy5, genus = taxonomy6) %>% 
-  filter(genus != "NA") %>% 
-  unique()
+## Samples 
 
-## Abundance and filtering
+df_sample <-
+  exprSet %>%
+  pData() %>%
+  as_tibble(rownames = "sample") %>%
+  select(sample, study_condition)
+
+## Abundance & taxonomy 
+
+df_abund <-
+  exprSet %>%
+  exprs() %>%
+  as_tibble(rownames = "taxonomy") %>%
+  filter(is_rank(taxonomy, "genus"),
+         is_clade(taxonomy, "Bacteria", "kingdom")) %>%
+  mutate(clade = last_clade(taxonomy)) %>%
+  select(clade, taxonomy, everything())
+
+total_count <-
+  df_abund %>%
+  select(-clade, -taxonomy) %>%
+  colSums()
+
+df_sample$count <- total_count
 
 prevalence_min <- 0.05
 
-df_abund <- 
-  biom %>% 
-  biom_data() %>% 
-  as("matrix") %>% 
-  as_tibble(rownames = "OTU")
+clades_to_keep <-
+  df_abund %>%
+  select(-taxonomy) %>%
+  gather(key = sample, value = Count, -clade) %>%
+  group_by(clade) %>%
+  summarise(P = mean(Count > 0), N = sum(Count)) %>%
+  arrange(P) %>%
+  filter(P > prevalence_min) %>%
+  pull(clade)
 
-df_abund <- 
-  taxtable %>% 
-  left_join(df_abund, by = "OTU") %>%
-  select(-c(OTU, kingdom, phylum, class, order, family)) %>% 
-  group_by(genus) %>% 
-  summarise_all(sum)
-
-df_abund <-
-  df_abund %>% 
-  gather(key = "sample", value = "abundance", -genus) %>% 
-  group_by(genus) %>% 
-  mutate(P = mean(abundance > 0)) %>% 
-  filter(P > prevalence_min) %>% 
-  select(-P) %>% 
-  ungroup() %>% 
-  spread(key = sample, value = abundance)
-
-taxtable <- filter(taxtable, genus %in% df_abund$genus)
+df_abund <- filter(df_abund, clade %in% clades_to_keep)
 
 ## Trees
 
-tree_cor <- correlation_tree(df_abund, method = "spearman")
-mean_lineage <- mean_lineage_length(tree_cor)
+# Correlation tree
+tree_cor <-
+  df_abund %>%
+  select(-taxonomy) %>%
+  correlation_tree(method = "spearman")
 
-tree_tax <- 
-  taxtable %>% 
-  select(-OTU) %>% 
-  unique() %>% 
-  taxtree(lineage_length = mean_lineage) %>% 
+# Taxonomy
+tree_tax <-
+  df_abund %>%
+  pull(taxonomy) %>%
+  taxtable() %>%
+  taxtree(lineage_length = mean_lineage_length(tree_cor)) %>% 
   multi2di()
+
 tree_tax$node.label <- NULL
 
 
@@ -75,7 +82,7 @@ tree_tax$node.label <- NULL
 
 set.seed(42)
 
-N_boot <- 100
+N_boot <- 250 # To ensure about 100 bootstrapped trees
 N_rand <- 100
 
 ## Bootstraps
@@ -194,7 +201,7 @@ dist_df_bhv %>%
   labs(x = NULL, y = "Distance to correlation tree") +
   mytheme
 
-ggsave("forests/ravel/ravel-bhv-boxplot.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/zeller/zeller-bhv-boxplot.png", width = 7.5, height = 5, dpi = "retina")
 
 dist_df_rf %>% 
   filter(!Type %in% c("Correlation", "Taxonomy")) %>% 
@@ -212,7 +219,7 @@ dist_df_rf %>%
   labs(x = NULL, y = "Distance to correlation tree") +
   mytheme
 
-ggsave("forests/ravel/ravel-rf-boxplot.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/zeller/zeller-rf-boxplot.png", width = 7.5, height = 5, dpi = "retina")
 
 
 ## PCoAs
@@ -232,7 +239,7 @@ pcoa_bhv$vectors %>%
        y = paste0("Axis 2 (",round(pcoa_bhv$values$Relative_eig[2]*100, 2), " %)")) +
   mytheme
 
-ggsave("forests/ravel/ravel-bhv-pcoa.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/zeller/zeller-bhv-pcoa.png", width = 7.5, height = 5, dpi = "retina")
 
 pcoa_rf$vectors %>%
   as_tibble() %>%
@@ -249,4 +256,4 @@ pcoa_rf$vectors %>%
        y = paste0("Axis 2 (",round(pcoa_rf$values$Relative_eig[2]*100, 2), " %)")) +
   mytheme
 
-ggsave("forests/ravel/ravel-rf-pcoa.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/zeller/zeller-rf-pcoa.png", width = 7.5, height = 5, dpi = "retina")

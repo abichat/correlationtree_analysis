@@ -1,6 +1,5 @@
 library(curatedMetagenomicData)
 library(correlationtree)
-# library(StructFDR)
 library(tidyverse)
 library(yatah)
 
