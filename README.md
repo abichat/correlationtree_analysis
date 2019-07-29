@@ -7,7 +7,7 @@
 
 [![Codacy
 Badge](https://api.codacy.com/project/badge/Grade/ba04cd22d16047bb831608b9a7a6702f)](https://www.codacy.com/app/abichat/correlationtree_analysis?utm_source=github.com&utm_medium=referral&utm_content=abichat/correlationtree_analysis&utm_campaign=Badge_Grade)
-[![Last-changedate](https://img.shields.io/badge/last%20change-2019--07--28-yellowgreen.svg)](/commits/master)
+[![Last-changedate](https://img.shields.io/badge/last%20change-2019--07--29-yellowgreen.svg)](/commits/master)
 <!-- badges: end -->
 
 This repository contains analysis done in the paper…
@@ -20,11 +20,13 @@ Package versions used in these analysis:
 | :--------------------- | :--------- |
 | ape                    | 5.3        |
 | biomformat             | 1.12.0     |
-| correlationtree        | 0.0.0.9002 |
+| broom                  | 0.5.2      |
+| correlationtree        | 0.0.0.9003 |
 | cowplot                | 1.0.0      |
 | curatedMetagenomicData | 1.13.3     |
 | dplyr                  | 0.8.3      |
 | forcats                | 0.4.0      |
+| furrr                  | 0.1.0      |
 | ggplot2                | 3.2.0      |
 | ggtree                 | 1.16.0     |
 | igraph                 | 1.2.4.1    |

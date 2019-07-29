@@ -38,7 +38,7 @@ packages <-
 
 df_package_version <-
   packages %>% 
-  c(., "dplyr", "tidyr", "ggplot2", "purrr", "readr", "stringr", "forcats") %>% 
+  c(., "dplyr", "tidyr", "ggplot2", "purrr", "readr", "stringr", "forcats", "furrr") %>% 
   unique() %>% 
   sort() %>% 
   enframe(value = "Package", name = NULL) %>% 
