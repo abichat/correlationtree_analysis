@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 
 This repository contains analysis done in the paper…
 
-Some results might be slightly different due to seed choice.
+Some results might be slightly different due to seed choice or limited number of replications in simulations.
 
 Package versions used in these analysis:
 ```{r used_packages, echo=FALSE, message=FALSE}
