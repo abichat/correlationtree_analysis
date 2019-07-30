@@ -1,6 +1,8 @@
 library(curatedMetagenomicData)
 library(correlationtree)
+library(StructFDR)
 library(tidyverse)
+library(phyloseq)
 library(janitor)
 library(cowplot)
 library(evabic)
@@ -14,75 +16,61 @@ plan(multiprocess)
 
 #### Data ####
 
-exprSet <-
-  "BritoIL_2016.metaphlan_bugs_list.stool" %>%
-  curatedMetagenomicData(dryrun = FALSE, counts = TRUE) %>%
-  mergeData()
+N_sample <- 100
+samples <- paste0("S", c(paste0("0", c(paste0("0", 1:9), 10:99)), 100))
 
-## Samples
+N_otus <- 400
 
-df_sample <-
-  exprSet %>%
-  pData() %>%
-  as_tibble(rownames = "Sample") %>%
-  select(Sample, age_category) %>%
-  filter(age_category == "adult") %>%
-  mutate(Status = sample(c("A", "B"), size = n(), replace = TRUE),
-         age_category = NULL)
+nb_mean <- 10000
+nb_size <- 25
 
-Nsamples <- nrow(df_sample)
+data("alcohol")
+data <- alcohol$X
 
-## Abundance 
+## Abundance
 
-df_abund <-
-  exprSet %>%
-  exprs() %>%
-  as_tibble(rownames = "taxonomy") %>%
-  filter(is_rank(taxonomy, "genus")) %>%
-  mutate(clade = last_clade(taxonomy)) %>%
-  select(clade, taxonomy, one_of(df_sample$Sample))
+otus <- 
+  data %>% 
+  rowSums() %>% 
+  sort(decreasing = TRUE) %>% 
+  head(n = N_otus) %>% 
+  names()
 
-clades_to_keep <-
-  df_abund %>%
-  select(-taxonomy) %>%
-  gather(key = Sample, value = Count, -clade) %>%
-  group_by(clade) %>%
-  summarise(P = sum(Count > 0), M = mean(Count > 0)) %>%
-  arrange(P) %>%
-  filter(M > 0.2) %>%
-  pull(clade)
+data_filtered <- data[otus, ]
 
-df_abund <- filter(df_abund, clade %in% clades_to_keep)
+otu_table_filtered <- alcohol$otu.name[otus, ]
+
+## Fit
+
+fit <- dirmult(t(data_filtered), epsilon = 10^(-5), trace = FALSE)
+gamma <- fit$gamma
+names(gamma) <- otus
+
+## Simulation
+
+param_nb <- rnbinom(N_sample, mu = nb_mean, size = nb_size)
+param_dirich <- rerun(N_sample, rdirichlet(1, alpha = gamma))
+
+data_sim <-
+  map2_dfc(param_nb, param_dirich, rmultinom, n = 1) %>% 
+  as.matrix() %>% 
+  `colnames<-`(samples) %>% 
+  `rownames<-`(otus)
 
 ## Trees
 
-tree_cor <-
-  df_abund %>%
-  select(-taxonomy) %>%
-  correlation_tree(method = "spearman")
+tree_cor <- correlation_tree(data_sim, matrix = TRUE, method = "spearman")
 
-tree_tax <-
-  df_abund %>%
-  pull(taxonomy) %>%
-  taxtable() %>%
-  taxtree(lineage_length = mean_lineage_length(tree_cor))
 
-tree_tax$node.label <- NULL
+#### Phylogenetic tree #### 
 
-## Taxa
+tree_phy <- prune_taxa(otus, alcohol$tree)
+tree_phy <- multi2di(tree_phy)
+tree_phy$node.label <- NULL
+tree_phy$edge.length <- 
+  mean_lineage_length(tree_cor) * tree_phy$edge.length / 
+  mean_lineage_length(tree_phy)
 
-taxa_all <-
-  df_abund %>%
-  select(-taxonomy) %>%
-  gather(key = Sample, value = Count, -clade) %>% 
-  group_by(clade) %>% 
-  summarise(m = length(Count[Count > 0])) %>% 
-  arrange(desc(m)) %>%
-  pull(clade) 
-
-Ntaxa <- length(taxa_all)
-
-taxa_top30 <- taxa_all[1:30]
 
 
 #### Simulations ####
@@ -124,21 +112,12 @@ B <- 20 # In the paper, B = 100
 my_TreeFDR <- partial(TreeFDR2, B = B, q.cutoff = 0.5,
                       test.func = test.func.wt, perm.func = perm.func)
 
-## Formatting
-
-X <-
-  df_abund %>%
-  select(-taxonomy) %>%
-  column_to_rownames("clade") %>%
-  as.matrix()
-
-taxa <- rownames(X)
 
 ## Parameters
 
 fc <- c(5, 10, 15, 20)
-nH1 <- c(2, 5, 10, 15)
-repl <- 30 # In the paper, repl > 600 
+nH1 <- c(2, 10, 25, 40) # In the paper, nH1 = c(2, 5, 10, 15, 25, 40)
+repl <- 8 # In the paper, repl > 600 
 
 set.seed(42)
 
@@ -152,15 +131,16 @@ df <-
   bind_rows() %>% 
   mutate(time = time0, B = B) %>% 
   rowid_to_column("ID") %>% 
-  mutate(ind_samp = rerun(n(), sample(Nsamples, round(Nsamples / 2))),
-         samp_lgl = map(ind_samp, ~ seq(Nsamples) %in% .),
-         taxa_diffs = map(nH1, sample, x = taxa_top30),
-         ind_taxa = map(taxa_diffs, ~ which(taxa %in% .)),
-         newdata = pmap(list(fc = fc, rows = ind_taxa, cols = ind_samp),
-                        apply_fc, X = X),
+  mutate(ind_samp = rerun(n(), sample(N_sample, round(N_sample / 2))),
+         samp_lgl = map(ind_samp, ~ seq(N_sample) %in% .),
+         otus_diffs = map(nH1, sample, x = otus),
+         ind_otus = map(otus_diffs, ~ which(otus %in% .)),
+         newdata = pmap(list(fc = fc, rows = ind_otus, cols = ind_samp),
+                        apply_fc, X = data_sim), 
          tree_cor = future_map(newdata, correlation_tree, matrix = TRUE, method = "spearman"),
-         tree_randtax = rerun(n(), shuffle_tiplabels(tree_tax)),
+         tree_randphy = rerun(n(), shuffle_tiplabels(tree_phy)),
          tree_randcor = future_map(tree_cor, shuffle_tiplabels))
+
 
 ## Analysis
 
@@ -168,13 +148,13 @@ df <-
   df %>% # Could take several hours
   mutate(fdrobj_cor = future_pmap(list(X = newdata, Y = samp_lgl, tree = tree_cor), my_TreeFDR),
          fdrobj_randcor = future_pmap(list(X = newdata, Y = samp_lgl, tree = tree_randcor), my_TreeFDR),
-         fdrobj_tax = future_pmap(list(X = newdata, Y = samp_lgl), my_TreeFDR, tree = tree_tax),
-         fdrobj_randtax = future_pmap(list(X = newdata, Y = samp_lgl, tree = tree_randtax), my_TreeFDR)) %>% 
-  select(-newdata, -ind_samp, -ind_taxa, -samp_lgl, -tree_cor, -tree_randtax, -tree_randcor)
+         fdrobj_phy = future_pmap(list(X = newdata, Y = samp_lgl), my_TreeFDR, tree = tree_phy),
+         fdrobj_randphy = future_pmap(list(X = newdata, Y = samp_lgl, tree = tree_randphy), my_TreeFDR)) %>% 
+  select(-newdata, -ind_samp, -ind_otus, -samp_lgl, -tree_cor, -tree_randphy, -tree_randcor)
 
 df_gathered <-
   df %>% 
-  gather(method, fdr_obj, -ID, -fc, -nH1, -time, -B, -taxa_diffs) %>% 
+  gather(method, fdr_obj, -ID, -fc, -nH1, -time, -B, -otus_diffs) %>% 
   mutate(method = str_remove_all(method, "fdrobj_"))
 
 df_bh <- 
@@ -188,7 +168,7 @@ df_bh <-
          pbh = map(praw, p.adjust, method = "BH"),
          detected = map(pbh, ~ names(.)[. < 0.05])) %>% 
   mutate(k = NA, rho = NA, smoothing_mean = NA) %>%
-  select(fc, nH1, taxa_diffs, method, B, detected, k, rho, smoothing_mean)
+  select(fc, nH1, otus_diffs, method, B, detected, k, rho, smoothing_mean)
 
 df_treefdr <- 
   df_gathered %>% 
@@ -197,16 +177,16 @@ df_treefdr <-
   mutate(k = map_dbl(fdr_obj, "k"), 
          rho = map_dbl(fdr_obj, "rho")) %>% 
   mutate(smoothing_mean = map_dbl(fdr_obj, ~ mean(abs(.$z.adj - .$z.unadj)))) %>% 
-  select(fc, nH1, taxa_diffs, method, B, detected, k, rho, smoothing_mean)
+  select(fc, nH1, otus_diffs, method, B, detected, k, rho, smoothing_mean)
 
 df_eval <-
   rbind(df_treefdr, df_bh) %>% 
-  mutate(pi0 = 100 * (Ntaxa - nH1) / Ntaxa, 
-         tidyebc = map2(detected, taxa_diffs, ebc_tidy, m = Ntaxa,
+  mutate(pi0 = 100 * (N_otus - nH1) / N_otus, 
+         tidyebc = map2(detected, otus_diffs, ebc_tidy, m = N_otus,
                         measures = c("BACC", "ACC", "TPR", "FDR", "F1"))) %>% 
   unnest(tidyebc) %>% 
   mutate(BACC = ifelse(is.nan(BACC), 0, BACC)) %>% 
-  select(-taxa_diffs, -detected)
+  select(-otus_diffs, -detected)
 
 
 #### Results ####
@@ -228,45 +208,45 @@ df_eval %>%
 
 #### Plots ####
 
-color_values <- c("Correlation" = "#C77CFF", "Taxonomy" = "#F8766D", 
-                  "Random Correlation" = "#7CAE00", "Random Taxonomy" = "#FFA500",
+color_values <- c("Correlation" = "#C77CFF", "Phylogeny" = "#F8766D", 
+                  "Random Correlation" = "#7CAE00", "Random Phylogeny" = "#FFA500",
                   "BH" = "#4169E1")
 
-linetype_values <- c("Correlation" = "solid", "Taxonomy" = "dotdash", 
-                     "Random Correlation" = "dashed", "Random Taxonomy" = "twodash",
+linetype_values <- c("Correlation" = "solid", "Phylogeny" = "dotdash", 
+                     "Random Correlation" = "dashed", "Random Phylogeny" = "twodash",
                      "BH" = "dotted")
 
 labels <- c("5" = "fc = 5", "10" = "fc = 10", "15" = "fc = 15", "20" = "fc = 20")
 
-## Smoothing
-
-df_smoothing <- 
-  df_eval %>% 
-  arrange(nH1) %>% 
-  mutate(nH1 = as_factor(nH1)) %>% 
-  mutate(method = factor(method, levels = c("bh", "cor", "tax", "randcor", "randtax"), 
-                         labels = c("BH", "Correlation", "Taxonomy",
-                                    "Random Correlation", "Random Taxonomy")),
-         method = fct_rev(method)) %>% 
-  filter(method != "bh")
-
-ggplot(df_smoothing) +
-  aes(x = smoothing_mean, fill = method, color = method) +
-  geom_density(alpha = 0.7, size = 1, adjust = 1) +
-  scale_x_log10(breaks = 10^(-5*0:5)) +
-  scale_color_manual(values = color_values, name = "Method",
-                     aesthetics = c("color", "fill"), breaks = rev) + 
-  labs(x = "Mean z-smoothing", y = "Density") +
-  theme_minimal() +
-  theme(legend.position = c(0.15, 0.8), 
-        legend.justification = c(0, 1), 
-        legend.background = element_blank(), 
-        axis.title = element_text(size = 28),
-        axis.text = element_text(size = 18),
-        legend.title = element_text(size = 25),
-        legend.text = element_text(size = 23))
-
-ggsave("simulations/non_parametric/simu_np-smoothing.png", width = 15, height = 5, dpi = "retina")
+# ## Smoothing
+# 
+# df_smoothing <- 
+#   df_eval %>% 
+#   arrange(nH1) %>% 
+#   mutate(nH1 = as_factor(nH1)) %>% 
+#   mutate(method = factor(method, levels = c("bh", "cor", "tax", "randcor", "randtax"), 
+#                          labels = c("BH", "Correlation", "Phylogeny",
+#                                     "Random Correlation", "Random Phylogeny")),
+#          method = fct_rev(method)) %>% 
+#   filter(method != "bh")
+# 
+# ggplot(df_smoothing) +
+#   aes(x = smoothing_mean, fill = method, color = method) +
+#   geom_density(alpha = 0.7, size = 1, adjust = 1) +
+#   scale_x_log10(breaks = 10^(-5*0:5)) +
+#   scale_color_manual(values = color_values, name = "Method",
+#                      aesthetics = c("color", "fill"), breaks = rev) + 
+#   labs(x = "Mean z-smoothing", y = "Density") +
+#   theme_minimal() +
+#   theme(legend.position = c(0.15, 0.8), 
+#         legend.justification = c(0, 1), 
+#         legend.background = element_blank(), 
+#         axis.title = element_text(size = 28),
+#         axis.text = element_text(size = 18),
+#         legend.title = element_text(size = 25),
+#         legend.text = element_text(size = 23))
+# 
+# ggsave("simulations/non_parametric/simu_np-smoothing.png", width = 15, height = 5, dpi = "retina")
 
 ## TPR and FDR 
 
@@ -274,9 +254,9 @@ df_ebc <-
   df_eval %>% 
   arrange(nH1) %>% 
   mutate(nH1 = as_factor(nH1)) %>% 
-  mutate(method = factor(method, levels = c("bh", "cor", "tax", "randcor", "randtax"), 
-                         labels = c("BH", "Correlation", "Taxonomy",
-                                    "Random Correlation", "Random Taxonomy")))
+  mutate(method = factor(method, levels = c("bh", "cor", "phy", "randcor", "randphy"), 
+                         labels = c("BH", "Correlation", "Phylogeny",
+                                    "Random Correlation", "Random Phylogeny")))
 
 # TPR
 df_TPR <-
@@ -335,4 +315,4 @@ plot_grid(
   legend, 
   ncol = 1, rel_heights = c(2, 0.1))
 
-ggsave("simulations/non_parametric/simu_np-ebc.png", width = 15, height = 8, dpi = "retina")
+ggsave("simulations/parametric/simu_p-ebc.png", width = 15, height = 8, dpi = "retina")
