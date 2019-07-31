@@ -5,6 +5,12 @@ library(tidyverse)
 library(phyloseq)
 library(igraph)
 library(ape)
+library(ggbeeswarm)
+library(cowplot)
+library(ggtree)
+library(scales)
+# setwd(here::here())
+source("R_scripts/helpers.R")
 
 #### Data ####
 
@@ -84,6 +90,8 @@ environments <-
 tree_cor <- correlation_tree(abundances, matrix = TRUE, method = "spearman")
 mean_lineage <- mean_lineage_length(tree_cor)
 
+write.tree(tree_cor, file = "real_datasets/chaillou/cortree_chaillou.nwk")
+
 tree_phy <- 
   read.tree("real_datasets/chaillou/phytree_chaillou.nwk") %>% 
   prune_taxa(OTU, .)
@@ -154,3 +162,20 @@ length(detected_cor)
 length(intersect(detected_cor, detected_phy))
 # Number of detected species by BH with similar FDR
 tbl_pvalues %>% filter(bh < 0.04) %>% pull(OTU) %>% length()
+
+## Highlight the 6 taxa that are specific to phy 
+otu_phy <- filter(tbl_pvalues, phy <= alpha, cor >= alpha | is.na(cor)) %>% pull(OTU)
+otu_cor <- filter(tbl_pvalues, cor <= alpha, phy >= alpha | is.na(phy)) %>% pull(OTU)
+otu_test <- paste0("otu_0", c("0241", "0516", "1495", "0519", "0656"))
+
+
+my_plot_chaillou <- partial(my_plot, data = abundances, env = food_type)
+
+my_plot_chaillou(otu_phy) + ggtitle("OTUs only detected using the phylogeny")
+my_plot_chaillou(otu_cor) + ggtitle("OTUs only detected using the correlation")
+my_plot_chaillou(otu_test) + ggtitle("OTUs in clade of 01495")  
+
+## Show OTUs on taxonomy
+p <- facing_trees(tree_cor, tree_phy, tbl_pvalues, cor, phy, p_thresh = 0.01)
+
+plot(p)
