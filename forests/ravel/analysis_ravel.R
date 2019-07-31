@@ -8,7 +8,7 @@ library(ape)
 
 # Parallelize the code
 options("future.fork.enable" = TRUE)
-plan(multicore)
+plan(multiprocess)
 
 
 #### Data ####
