@@ -1,20 +1,20 @@
-facing_trees <- function(phy1, phy2, data, method1, method2, p_thresh = 0.1) {
+facing_trees <- function(tree_cor, tree_phy, data, col_cor, col_phy, p_thresh = 0.01) {
   
   ## Keep only taxa found by one or the other method
-  data <- filter(data, {{method1}} <= p_thresh | {{method2}} <= p_thresh) %>% 
+  data <- filter(data, {{col_cor}} <= p_thresh | {{col_phy}} <= p_thresh) %>% 
     mutate(Status = case_when(
-      {{method1}} <= p_thresh & {{method2}} <= p_thresh ~ "Both",
-      {{method1}} <= p_thresh                           ~ "Correlation",
-      {{method2}} <= p_thresh                           ~ "Phylogeny",
+      {{col_cor}} <= p_thresh & {{col_phy}} <= p_thresh ~ "Both",
+      {{col_cor}} <= p_thresh                           ~ "Correlation",
+      {{col_phy}} <= p_thresh                           ~ "Phylogeny",
     ))
   
   my_palette <- setNames(c("#C77CFF", "#F8766D", "#349E34"), c("Correlation", "Phylogeny", "Both"))
   
   p1 <- 
-    phy1 %>%
+    tree_cor %>%
     ggtree(branch.length="none", color = "grey30") %<+%
     data +
-    geom_tippoint(aes(size = -log10({{method1}}), color = Status), alpha = 0.5) +
+    geom_tippoint(aes(size = -log10({{col_cor}}), color = Status), alpha = 0.5) +
     geom_tiplab(aes(color = Status), vjust = 0, hjust = 1, 
                 size = 2.5, fontface = "bold") +
     # scale_color_viridis_d(direction = -1) +
@@ -22,10 +22,10 @@ facing_trees <- function(phy1, phy2, data, method1, method2, p_thresh = 0.1) {
     theme(legend.position = "bottom")
   
   p2 <-
-    phy2 %>% 
+    tree_phy %>% 
     ggtree(color = "grey30") %<+%
     data +
-    geom_tippoint(aes(size = -log10({{method2}}), color = Status), alpha = 0.5) +
+    geom_tippoint(aes(size = -log10({{col_phy}}), color = Status), alpha = 0.5) +
     geom_tiplab(aes(color = Status), vjust = 0, hjust = 0,
                 size = 2.5, fontface = "bold") +
     # scale_color_viridis_d(direction = -1) +

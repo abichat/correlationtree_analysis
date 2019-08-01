@@ -3,14 +3,12 @@ library(biomformat)
 library(structSSI)
 library(tidyverse)
 library(phyloseq)
-library(igraph)
-library(ape)
-library(ggbeeswarm)
 library(cowplot)
 library(ggtree)
-library(scales)
-# setwd(here::here())
-source("R_scripts/helpers.R")
+library(igraph)
+library(broom)
+library(ape)
+
 
 #### Data ####
 
@@ -90,7 +88,7 @@ environments <-
 tree_cor <- correlation_tree(abundances, matrix = TRUE, method = "spearman")
 mean_lineage <- mean_lineage_length(tree_cor)
 
-write.tree(tree_cor, file = "real_datasets/chaillou/cortree_chaillou.nwk")
+# write.tree(tree_cor, file = "real_datasets/chaillou/cortree_chaillou.nwk")
 
 tree_phy <- 
   read.tree("real_datasets/chaillou/phytree_chaillou.nwk") %>% 
@@ -163,19 +161,177 @@ length(intersect(detected_cor, detected_phy))
 # Number of detected species by BH with similar FDR
 tbl_pvalues %>% filter(bh < 0.04) %>% pull(OTU) %>% length()
 
-## Highlight the 6 taxa that are specific to phy 
-otu_phy <- filter(tbl_pvalues, phy <= alpha, cor >= alpha | is.na(cor)) %>% pull(OTU)
-otu_cor <- filter(tbl_pvalues, cor <= alpha, phy >= alpha | is.na(phy)) %>% pull(OTU)
-otu_test <- paste0("otu_0", c("0241", "0516", "1495", "0519", "0656"))
+
+#### Plots ####
+
+## Evidences on tree
+
+palette_detected <- setNames(c("blue", "purple", "firebrick", "black"), 
+                             c("Correlation", "Both", "Phylogeny", "None"))
+
+tbl_pvalues_filtered <- 
+  tbl_pvalues %>% 
+  mutate(Detected = case_when(cor <= 0.01 & phy <= 0.01 ~ "Both",
+                              cor <= 0.01               ~ "Correlation",
+                              phy <= 0.01               ~ "Phylogeny",
+                              TRUE                      ~ "None"),
+         Detected = fct_relevel(Detected, "Correlation", "Both", "Phylogeny", "None"),
+         OTU_displayed = if_else(Detected != "None", OTU, "", missing = ""))
+
+detected_only_one <- 
+  tbl_pvalues_filtered %>% 
+  filter(Detected %in% c("Correlation", "Phylogeny")) %>% 
+  pull(OTU)
+
+p1 <-
+  tree_cor %>%
+  ggtree(branch.length="none", color = "grey30") %<+%
+  tbl_pvalues_filtered +
+  geom_hilight(node = 163, fill = "green", alpha = 0.5) +
+  geom_tippoint(aes(size = -log10(cor), color = Detected), alpha = 0.5) +
+  geom_tiplab(aes(label = OTU_displayed, color = Detected), vjust = 0, hjust = 1, 
+              size = 2.5, fontface = "bold", show.legend = FALSE) +
+  guides(size = FALSE) +
+  scale_color_manual(values = palette_detected, name = "Detected by")
+
+legend_tree <- get_legend(p1 + theme(legend.position = "bottom"))
+
+p2 <-
+  tree_phy %>% 
+  ggtree(color = "grey30") %<+%
+  tbl_pvalues_filtered +
+  geom_tippoint(aes(size = -log10(phy), color = Detected), alpha = 0.5) +
+  geom_tiplab(aes(label = OTU_displayed, color = Detected), vjust = 0, hjust = 0,
+              size = 2.5, fontface = "bold") +
+  scale_color_manual(values = palette_detected) + 
+  theme(legend.position = "none") + 
+  scale_x_reverse()
+
+plot_grid(
+  plot_grid(p1, p2, 
+            ncol = 2, 
+            labels = c("Correlation tree", "Phylogeny"), 
+            label_x = c(0, 0.3), 
+            label_y = c(1, 1)),
+  legend_tree, 
+  ncol = 1, rel_heights = c(2, 0.06))
+
+ggsave("real_datasets/chaillou/chaillou-evidences_on_trees.png", width = 15, height = 22, units = "cm")
+
+## Abundances only one
+
+df_4_boxplots <-
+  abundances %>% 
+  as_tibble(rownames = "OTU") %>% 
+  gather(key = "Sample", value = "Count", -OTU) %>% 
+  left_join(select(tbl_pvalues_filtered, OTU, Detected), by = "OTU") %>% 
+  arrange(Detected, OTU) %>% 
+  mutate(OTU = as_factor(OTU),
+         Env = str_sub(Sample, end = 2),
+         Env = as_factor(Env)) 
+
+bp_cor <-
+  df_4_boxplots %>% 
+  filter(Detected == "Correlation") %>% 
+  ggplot() +
+  aes(x = Env, y = Count) +
+  geom_boxplot(aes(fill = Env)) +
+  facet_wrap(vars(OTU), ncol = 6, scales = "free_y") +
+  scale_fill_brewer(type = "qual") +
+  guides(fill = guide_legend(nrow = 1)) +
+  labs(x = NULL, y = NULL, fill = "Food type") +
+  theme_minimal() +
+  theme(strip.background = element_rect(fill = alpha("blue", 0.5)), 
+        axis.text.x = element_blank(),
+        legend.position = "none")
+
+legend_abund <- get_legend(bp_cor + theme(legend.position = "bottom"))
+
+bp_phy <-
+  df_4_boxplots %>% 
+  filter(Detected == "Phylogeny") %>% 
+  ggplot() +
+  aes(x = Env, y = Count) +
+  geom_boxplot(aes(fill = Env)) +
+  facet_wrap(vars(OTU), ncol = 6, scales = "free_y") +
+  scale_fill_brewer(type = "qual") +
+  labs(x = NULL, y = NULL) +
+  theme_minimal() +
+  theme(strip.background = element_rect(fill = alpha("firebrick", 0.5)),
+        axis.text.x = element_blank(),
+        legend.position = "none")
+
+plot_grid(
+  plot_grid(
+    bp_cor, bp_phy, 
+    ncol = 1, rel_heights = c(2, 1), 
+    align = "v", axis = "l"),
+  legend_abund, 
+  ncol = 1, rel_heights = c(3, 0.1))
+
+ggsave("real_datasets/chaillou/chaillou-abund_only_one.png", width = 15, height = 12, units = "cm")
 
 
-my_plot_chaillou <- partial(my_plot, data = abundances, env = food_type)
+## Focus on subtree
 
-my_plot_chaillou(otu_phy) + ggtitle("OTUs only detected using the phylogeny")
-my_plot_chaillou(otu_cor) + ggtitle("OTUs only detected using the correlation")
-my_plot_chaillou(otu_test) + ggtitle("OTUs in clade of 01495")  
+otu_subtree <- paste0("otu_0", c("0241", "0516", "0519", "0656", "1495"))
+subtree_cor <- keep.tip(tree_cor, otu_subtree)
 
-## Show OTUs on taxonomy
-p <- facing_trees(tree_cor, tree_phy, tbl_pvalues, cor, phy, p_thresh = 0.01)
+subtree_cor$node.label <- as.character(6:9)
 
-plot(p)
+p_value_lm <- function(otus) {
+  glance(lm(colSums(abundances[otu_subtree[otus], ]) ~ environments))$p.value
+}
+
+p_value_kw <- function(otus) {
+  glance(kruskal.test(colSums(abundances[otu_subtree[otus], ]) ~ environments))$p.value
+}
+
+tbl_node_pv <-
+  tibble(mrca = c(1, 2, 3, 4, 5, 6, 7, 8, 9),
+         merge = list(1, 2, 3, 4, 5, 1:5, 1:2, 3:5, 3:4),
+         p_lm = map_dbl(merge, p_value_lm),
+         p_kw = map_dbl(merge, p_value_kw)) %>% 
+  mutate(mrca = if_else(mrca < 6, otu_subtree[mrca], as.character(mrca)),
+         detected = if_else(mrca %in% detected_phy, "Phylogeny", "None")) %>% 
+  mutate_at(vars(starts_with("p_")), ~ prettyNum(., format = "e", digits = 2))
+
+tbl_node_pv$p_lm[6] <- paste(tbl_node_pv$p_lm[6], "(F-test p-value)")
+tbl_node_pv$p_kw[6] <- paste(tbl_node_pv$p_kw[6], "(KW-test p-value)")
+
+n_y <- 0.08
+n_x <- 0.005
+hj <- 0
+col_lm <- "black"
+col_kw <- "grey60"
+
+p_subtree <-
+  ggtree(subtree_cor) %<+% 
+  tbl_node_pv +
+  geom_point() +
+  geom_tiplab(aes(color = detected), nudge_y = 0.1, hjust = 1.1) +
+  geom_nodelab(aes(label = p_lm), color = col_lm, nudge_x = n_x, nudge_y = n_y, hjust = hj) +
+  geom_nodelab(aes(label = p_kw), color = col_kw, nudge_x = n_x,  nudge_y = -n_y, hjust = hj) +
+  geom_tiplab(aes(label = p_lm),  color = col_lm, offset = n_x,  nudge_y = n_y, hjust = hj) +
+  geom_tiplab(aes(label = p_kw),  color = col_kw, offset = n_x,   nudge_y = -n_y, hjust =  hj) + 
+  scale_color_manual(values = palette_detected) +
+  xlim(0, 0.35)
+
+bp_subtree <-
+  df_4_boxplots %>% 
+  filter(OTU %in% otu_subtree) %>% 
+  mutate(OTU = fct_relevel(OTU, "otu_00656", "otu_00519", "otu_01495", "otu_00516")) %>% 
+  ggplot() +
+  aes(x = Env, y = Count) +
+  geom_boxplot(aes(fill = Env)) +
+  facet_wrap(vars(OTU), ncol = 1, scales = "free_y") +
+  scale_fill_brewer(type = "qual") +
+  labs(x = NULL, y = NULL, fill = "Food type") +
+  theme_minimal() +
+  theme(strip.background = element_rect(fill = alpha("grey80", 0.5)), 
+        axis.text.x = element_blank(),
+        legend.position = "right")
+
+plot_grid(p_subtree, bp_subtree, ncol = 2)
+
+ggsave("real_datasets/chaillou/chaillou-focus_subtree.png", width = 15, height = 15, units = "cm")
