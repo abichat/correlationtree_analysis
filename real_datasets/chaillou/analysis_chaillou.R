@@ -159,15 +159,12 @@ length(detected_cor)
 # Number of species detected by both corrections
 length(intersect(detected_cor, detected_phy))
 # Number of detected species by BH with similar FDR
-tbl_pvalues %>% filter(bh < 0.04) %>% pull(OTU) %>% length()
+tbl_pvalues %>% filter(bh < 0.04) %>% nrow()
 
 
 #### Plots ####
 
-## Evidences on tree
-
-palette_detected <- setNames(c("blue", "purple", "firebrick", "black"), 
-                             c("Correlation", "Both", "Phylogeny", "None"))
+## Abundances only one
 
 tbl_pvalues_filtered <- 
   tbl_pvalues %>% 
@@ -178,48 +175,6 @@ tbl_pvalues_filtered <-
          Detected = fct_relevel(Detected, "Correlation", "Both", "Phylogeny", "None"),
          OTU_displayed = if_else(Detected != "None", OTU, "", missing = ""))
 
-detected_only_one <- 
-  tbl_pvalues_filtered %>% 
-  filter(Detected %in% c("Correlation", "Phylogeny")) %>% 
-  pull(OTU)
-
-p1 <-
-  tree_cor %>%
-  ggtree(branch.length="none", color = "grey30") %<+%
-  tbl_pvalues_filtered +
-  geom_hilight(node = 163, fill = "green", alpha = 0.5) +
-  geom_tippoint(aes(size = -log10(cor), color = Detected), alpha = 0.5) +
-  geom_tiplab(aes(label = OTU_displayed, color = Detected), vjust = 0, hjust = 1, 
-              size = 2.5, fontface = "bold", show.legend = FALSE) +
-  guides(size = FALSE) +
-  scale_color_manual(values = palette_detected, name = "Detected by")
-
-legend_tree <- get_legend(p1 + theme(legend.position = "bottom"))
-
-p2 <-
-  tree_phy %>% 
-  ggtree(color = "grey30") %<+%
-  tbl_pvalues_filtered +
-  geom_tippoint(aes(size = -log10(phy), color = Detected), alpha = 0.5) +
-  geom_tiplab(aes(label = OTU_displayed, color = Detected), vjust = 0, hjust = 0,
-              size = 2.5, fontface = "bold") +
-  scale_color_manual(values = palette_detected) + 
-  theme(legend.position = "none") + 
-  scale_x_reverse()
-
-plot_grid(
-  plot_grid(p1, p2, 
-            ncol = 2, 
-            labels = c("Correlation tree", "Phylogeny"), 
-            label_x = c(0, 0.3), 
-            label_y = c(1, 1)),
-  legend_tree, 
-  ncol = 1, rel_heights = c(2, 0.06))
-
-ggsave("real_datasets/chaillou/chaillou-evidences_on_trees.png", width = 15, height = 22, units = "cm")
-
-## Abundances only one
-
 df_4_boxplots <-
   abundances %>% 
   as_tibble(rownames = "OTU") %>% 
@@ -228,7 +183,16 @@ df_4_boxplots <-
   arrange(Detected, OTU) %>% 
   mutate(OTU = as_factor(OTU),
          Env = str_sub(Sample, end = 2),
-         Env = as_factor(Env)) 
+         Env = case_when(
+           Env == "BH" ~ "GB",
+           Env == "CD" ~ "Sh",
+           Env == "DL" ~ "SB",
+           Env == "FC" ~ "CF",
+           Env == "FS" ~ "SF",
+           Env == "MV" ~ "PS",
+           Env == "SF" ~ "SS",
+           Env == "VH" ~ "GV"),
+         Env = fct_relevel(Env, "SB", "PS", "GB", "GV", "Sh", "CF", "SF", "SS"))
 
 bp_cor <-
   df_4_boxplots %>% 
@@ -271,6 +235,50 @@ plot_grid(
 
 ggsave("real_datasets/chaillou/chaillou-abund_only_one.png", width = 15, height = 12, units = "cm")
 
+## Evidences on tree
+
+palette_detected <- setNames(c("blue", "purple", "firebrick", "black"), 
+                             c("Correlation", "Both", "Phylogeny", "None"))
+
+detected_only_one <- 
+  tbl_pvalues_filtered %>% 
+  filter(Detected %in% c("Correlation", "Phylogeny")) %>% 
+  pull(OTU)
+
+p1 <-
+  tree_cor %>%
+  ggtree(branch.length="none", color = "grey30") %<+%
+  tbl_pvalues_filtered +
+  geom_hilight(node = 163, fill = "green", alpha = 0.5) +
+  geom_tippoint(aes(size = -log10(cor), color = Detected), alpha = 0.5) +
+  geom_tiplab(aes(label = OTU_displayed, color = Detected), vjust = 0, hjust = 1, 
+              size = 2.5, fontface = "bold", show.legend = FALSE) +
+  guides(size = FALSE) +
+  scale_color_manual(values = palette_detected, name = "Detected by")
+
+legend_tree <- get_legend(p1 + theme(legend.position = "bottom"))
+
+p2 <-
+  tree_phy %>% 
+  ggtree(color = "grey30") %<+%
+  tbl_pvalues_filtered +
+  geom_tippoint(aes(size = -log10(phy), color = Detected), alpha = 0.5) +
+  geom_tiplab(aes(label = OTU_displayed, color = Detected), vjust = 0, hjust = 0,
+              size = 2.5, fontface = "bold") +
+  scale_color_manual(values = palette_detected) + 
+  theme(legend.position = "none") + 
+  scale_x_reverse()
+
+plot_grid(
+  plot_grid(p1, p2, 
+            ncol = 2, 
+            labels = c("Correlation tree", "Phylogeny"), 
+            label_x = c(0, 0.3), 
+            label_y = c(1, 1)),
+  legend_tree, 
+  ncol = 1, rel_heights = c(2, 0.06))
+
+ggsave("real_datasets/chaillou/chaillou-evidences_on_trees.png", width = 15, height = 22, units = "cm")
 
 ## Focus on subtree
 
