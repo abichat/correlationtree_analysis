@@ -11,7 +11,6 @@ exprSet <-
   curatedMetagenomicData(dryrun = FALSE, counts = TRUE) %>%
   mergeData()
 
-
 ## Samples 
 
 df_sample <-
