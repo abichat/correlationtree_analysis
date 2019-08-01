@@ -204,6 +204,7 @@ p_scatter_all <-
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1)) +
   scale_color_manual(values = color_detected) +
   labs(x = "BH corrected p-value", y = "Correlation tree corrected p-value") +
+  theme_minimal() +
   theme(legend.position = "none", text = element_text(size = 19))
 
 p_scatter_zoom <- 
@@ -219,10 +220,10 @@ p_scatter_zoom <-
   scale_y_continuous(expand = c(0.01, 0), limits = c(0, 0.056)) +
   scale_color_manual(values = color_detected) +
   labs(x = "BH corrected p-value", y = "Correlation tree corrected p-value") +
+  theme_minimal() +
   theme(legend.position = "none", text = element_text(size = 19))
 
 plot_grid(p_facet_full, 
           plot_grid(p_scatter_all, p_scatter_zoom, ncol = 2), ncol = 1)
-
 
 ggsave("real_datasets/zeller_msp/zeller_msp-pvalues.png", width = 15, height = 15, dpi = "retina")
