@@ -23,6 +23,22 @@ to seed choice or limited number of replications in simulations.
 
 ### Forest
 
+Each folder is named after a dataset and contains several files:
+
+  - `anaylsis_dataset.R`: R script that performs the analysis,
+  - `dataset.biom`: biom-format file with the abundance if used,
+  - `phytree_dataset.nwk`: phylogeny or taxonomy in the newick format if
+    used,
+  - `XXX.png`: figure.
+
+Each of these scripts:
+
+1.  loads the data,
+2.  generates the forest of trees,
+3.  computes pairwise distances between trees (with BHV and RF),
+4.  performs PCoAs (one per ditance),
+5.  draws plots.
+
 This folder contains scripts for generating forests of trees, compute
 the distances (BHV and RF) between them and apply PCoA.
 

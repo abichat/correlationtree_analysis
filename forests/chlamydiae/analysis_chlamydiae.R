@@ -86,6 +86,12 @@ tree_types <-
 dist_bhv <- future_dist_BHV(forest) # Billera-Holmes-Vogtmann
 dist_rf <- dist.topo(unroot(forest)) # Robinson-Foulds
 
+## Save intermediary results
+# saveRDS(dist_bhv, "forests/chlamydiae/chlamydiae-dist-bhv.rds")
+# saveRDS(dist_rf,  "forests/chlamydiae/chlamydiae-dist-rf.rds")
+# dist_bhv <- readRDS("forests/chlamydiae/chlamydiae-dist-bhv.rds")
+# dist_rf <-  readRDS("forests/chlamydiae/chlamydiae-dist-rf.rds")
+
 # PCoA
 pcoa_bhv <- pcoa(dist_bhv) 
 pcoa_rf <- pcoa(dist_rf) 

@@ -27,9 +27,20 @@ Some results might be slightly different from those in the article due to seed c
 
 ### Forest
 
-This folder contains scripts for generating forests of trees, compute the distances (BHV and RF) between them and apply PCoA. 
+Each folder is named after a dataset and contains several files:
 
-Subfolders correspond to the dataset used to generate the forests: Chaillou, Chlamydiae, Ravel and Zeller.
+- `anaylsis_dataset.R`: R script that performs the analysis, 
+- `dataset.biom`: biom-format file with the abundance if used,
+- `phytree_dataset.nwk`: phylogeny or taxonomy in the newick format if used,
+- `XXX.png`: figure. 
+
+Each of these scripts:
+
+1. loads the data,
+2. generates the forest of trees,
+3. computes pairwise distances between trees (with BHV and RF),
+4. performs PCoAs (one per ditance),
+5. draws individual plots.
 
 Figures 3, S1 and S2 are drawn with these scripts.
 
@@ -45,6 +56,11 @@ Figures 6, 7, S5, S6, S7 and S8 are drawn with these scripts.
 This folder contains scripts that simulates datasets according to parametric and non parametric schemes.
 
 Figures 4, 5, S3 and S4 are drawn with these scripts.
+
+### Figures
+
+This folder contains scripts that draw every figure in the article. Each script takes its input in the corresponding folders of the repository.
+
 
 ## Package versions used for the analysis
 
