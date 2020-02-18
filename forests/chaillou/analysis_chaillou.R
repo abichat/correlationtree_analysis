@@ -170,7 +170,7 @@ dist_df_bhv %>%
   labs(x = NULL, y = "Distance to correlation tree") +
   mytheme
 
-ggsave("forests/chlamydiae/chlamydiae-bhv-boxplot.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/chaillou/chaillou-bhv-boxplot.png", width = 7.5, height = 5, dpi = "retina")
 
 dist_df_rf %>% 
   filter(!Type %in% c("Correlation", "Phylogeny")) %>% 
@@ -188,7 +188,7 @@ dist_df_rf %>%
   labs(x = NULL, y = "Distance to correlation tree") +
   mytheme
 
-ggsave("forests/chlamydiae/chlamydiae-rf-boxplot.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/chaillou/chaillou-rf-boxplot.png", width = 7.5, height = 5, dpi = "retina")
 
 
 ## PCoAs
@@ -208,7 +208,7 @@ pcoa_bhv$vectors %>%
        y = paste0("Axis 2 (",round(pcoa_bhv$values$Relative_eig[2]*100, 2), " %)")) +
   mytheme
 
-ggsave("forests/chlamydiae/chlamydiae-bhv-pcoa.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/chaillou/chaillou-bhv-pcoa.png", width = 7.5, height = 5, dpi = "retina")
 
 pcoa_rf$vectors %>%
   as_tibble() %>%
@@ -225,4 +225,4 @@ pcoa_rf$vectors %>%
        y = paste0("Axis 2 (",round(pcoa_rf$values$Relative_eig[2]*100, 2), " %)")) +
   mytheme
 
-ggsave("forests/chlamydiae/chlamydiae-rf-pcoa.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/chaillou/chaillou-rf-pcoa.png", width = 7.5, height = 5, dpi = "retina")

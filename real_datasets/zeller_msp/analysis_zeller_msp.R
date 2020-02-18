@@ -170,12 +170,12 @@ color_detected <- c("Correlation and BH" = "forestgreen", "Correlation" = "blue"
 
 p_facet <-
   tree_cor %>% 
-  ggtree(color = "grey") %>% 
+  ggtree(color = "grey30") %>% 
   facet_plot(panel = "Difference between correlation tree and BH corrected p-values", data = tbl_pvalue, geom = geom_barh, 
              mapping = aes(x = cor-bh, color = Detected, alpha = Detected), 
              stat = "identity", show.legend = FALSE) %<+%
   tbl_pvalue +
-  geom_tippoint(aes(subset = Detected != "None", color = Detected)) +
+  geom_tippoint(aes(subset = Detected != "None", color = Detected), size = 3) +
   scale_alpha_manual(values = c("None" = 0.2, "Correlation and BH" = 1, "Correlation" = 1)) +
   scale_color_manual(values = color_detected, name = "Detected by") +
   theme(legend.position = "bottom", text = element_text(size = 22))
