@@ -71,7 +71,7 @@ trees_rand_phy <-
 
 forest <- c(tree_cor, tree_phy, trees_boot, trees_rand_cor, trees_rand_phy)
 
-tree_types <- 
+tree_labels <- 
   factor(c("Correlation", "Phylogeny", 
            rep("Bootstrap", N_boot), 
            rep("Random Correlation", N_rand), 
@@ -79,6 +79,8 @@ tree_types <-
          levels = c("Correlation", "Bootstrap", 
                     "Random Correlation", "Random Phylogeny", "Phylogeny"))
 
+# saveRDS(tree_labels, "forests/chlamydiae/chlamydiae-tree-labels.rds")
+# tree_labels <- readRDS("forests/chlamydiae/chlamydiae-tree-labels.rds")
 
 #### Distances and models ####
 
@@ -86,7 +88,6 @@ tree_types <-
 dist_bhv <- future_dist_BHV(forest) # Billera-Holmes-Vogtmann
 dist_rf <- dist.topo(unroot(forest)) # Robinson-Foulds
 
-## Save intermediary results
 # saveRDS(dist_bhv, "forests/chlamydiae/chlamydiae-dist-bhv.rds")
 # saveRDS(dist_rf,  "forests/chlamydiae/chlamydiae-dist-rf.rds")
 # dist_bhv <- readRDS("forests/chlamydiae/chlamydiae-dist-bhv.rds")
@@ -96,9 +97,14 @@ dist_rf <- dist.topo(unroot(forest)) # Robinson-Foulds
 pcoa_bhv <- pcoa(dist_bhv) 
 pcoa_rf <- pcoa(dist_rf) 
 
+# saveRDS(pcoa_bhv, "forests/chlamydiae/chlamydiae-pcoa-bhv.rds")
+# saveRDS(pcoa_rf,  "forests/chlamydiae/chlamydiae-pcoa-rf.rds")
+# pcoa_bhv <- readRDS("forests/chlamydiae/chlamydiae-pcoa-bhv.rds")
+# pcoa_rf <-  readRDS("forests/chlamydiae/chlamydiae-pcoa-rf.rds")
+
 # Distances to correlation tree
-dist_df_bhv <- tibble(Distance = dist_bhv[1:(length(tree_types) - 1)], Type = tree_types[-1])
-dist_df_rf  <- tibble(Distance = dist_rf[1:(length(tree_types) - 1)],  Type = tree_types[-1])
+dist_df_bhv <- tibble(Distance = dist_bhv[1:(length(tree_labels) - 1)], Type = tree_labels[-1])
+dist_df_rf  <- tibble(Distance = dist_rf[1:(length(tree_labels) - 1)],  Type = tree_labels[-1])
 
 # Linear models
 lm_bhv <- lm(Distance ~ Type, data = dist_df_bhv)
@@ -121,26 +127,7 @@ as_tibble(TukeyHSD(aov_rf, "Type")$Type, rownames = "X")
 
 ## Themes 
 
-mytheme <-
-  theme_minimal() +
-  theme(axis.text = element_text(size = 8), 
-        axis.title = element_text(size = 12),
-        legend.position = "none")
-
-
-color_values <- c("Correlation" = "#C77CFF", "Phylogeny" = "#F8766D", 
-                  "Bootstrap" = "#00BFC4", "Random Correlation" = "#7CAE00",
-                  "Random Phylogeny" = "#FFA500")
-
-size_values <- c("Correlation" = 4, "Phylogeny" = 4, "Bootstrap" = 1, 
-                 "Random Correlation" = 1, "Random Phylogeny" = 1)
-
-alpha_values <- c("Correlation" = 0.8, "Phylogeny" = 0.8, "Bootstrap" = .4, 
-                  "Random Correlation" = .4, "Random Phylogeny" = .4)
-
-shape_values <- c("Correlation" = 17, "Phylogeny" = 16, "Bootstrap" = 2, 
-                  "Random Correlation" = 6, "Random Phylogeny" = 1)
-
+source("figures/theme.R")
 
 ## Boxplots
 
@@ -163,7 +150,7 @@ dist_df_bhv %>%
   labs(x = NULL, y = "Distance to correlation tree") +
   mytheme
 
-ggsave("forests/chlamydiae/chlamydiae-bhv-boxplot.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/chlamydiae/chlamydiae-boxplot-bhv.png", width = 7.5, height = 5, dpi = "retina")
 
 dist_df_rf %>% 
   filter(!Type %in% c("Correlation", "Phylogeny")) %>% 
@@ -181,14 +168,14 @@ dist_df_rf %>%
   labs(x = NULL, y = "Distance to correlation tree") +
   mytheme
 
-ggsave("forests/chlamydiae/chlamydiae-rf-boxplot.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/chlamydiae/chlamydiae-boxplot-rf.png", width = 7.5, height = 5, dpi = "retina")
 
 
 ## PCoAs
 
 pcoa_bhv$vectors %>%
   as_tibble() %>%
-  mutate(Type = tree_types) %>% 
+  mutate(Type = tree_labels) %>% 
   ggplot() +
   aes(Axis.1, Axis.2, 
       color = Type, shape = Type, size = Type, alpha = Type) +
@@ -201,11 +188,11 @@ pcoa_bhv$vectors %>%
        y = paste0("Axis 2 (",round(pcoa_bhv$values$Relative_eig[2]*100, 2), " %)")) +
   mytheme
 
-ggsave("forests/chlamydiae/chlamydiae-bhv-pcoa.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/chlamydiae/chlamydia-pcoa-bhv.png", width = 7.5, height = 5, dpi = "retina")
 
 pcoa_rf$vectors %>%
   as_tibble() %>%
-  mutate(Type = tree_types) %>% 
+  mutate(Type = tree_labels) %>% 
   ggplot() +
   aes(Axis.1, Axis.2, 
       color = Type, shape = Type, size = Type, alpha = Type) +
@@ -218,4 +205,4 @@ pcoa_rf$vectors %>%
        y = paste0("Axis 2 (",round(pcoa_rf$values$Relative_eig[2]*100, 2), " %)")) +
   mytheme
 
-ggsave("forests/chlamydiae/chlamydiae-rf-pcoa.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/chlamydiae/chlamydiae-pcoa-rf.png", width = 7.5, height = 5, dpi = "retina")
