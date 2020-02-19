@@ -12,7 +12,8 @@ color_values <- c(
   "Phylogeny" = "#F8766D",
   "Taxonomy" = "#F8766D",
   "Random Phylogeny" = "#FFA500",
-  "Random Taxonomy" = "#FFA500"
+  "Random Taxonomy" = "#FFA500",
+  "BH" = "#4169E1"
 )
 
 size_values <- c(
@@ -43,4 +44,12 @@ shape_values <- c(
   "Taxonomy" = 16,
   "Random Phylogeny" = 1,
   "Random Taxonomy" = 1
+)
+
+linetype_values <- c(
+  "Correlation" = "solid",
+  "Taxonomy" = "dotdash",
+  "Random Correlation" = "dashed",
+  "Random Taxonomy" = "twodash",
+  "BH" = "dotted"
 )
