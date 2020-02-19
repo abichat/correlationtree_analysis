@@ -83,7 +83,7 @@ trees_rand_phy <-
 
 forest <- c(tree_cor, tree_phy, trees_boot, trees_rand_cor, trees_rand_phy)
 
-tree_types <- 
+tree_labels <- 
   factor(c("Correlation", "Phylogeny", 
            rep("Bootstrap", N_boot), 
            rep("Random Correlation", N_rand), 
@@ -91,6 +91,8 @@ tree_types <-
          levels = c("Correlation", "Bootstrap", 
                     "Random Correlation", "Random Phylogeny", "Phylogeny"))
 
+# saveRDS(tree_labels, "forests/chaillou/chaillou-tree-labels.rds")
+# tree_labels <- readRDS("forests/chaillou/chaillou-tree-labels.rds")
 
 #### Distances and models ####
 
@@ -99,9 +101,19 @@ tree_types <-
 dist_bhv <- dist.multiPhylo(forest) # Billera-Holmes-Vogtmann
 dist_rf <- dist.topo(unroot(forest)) # Robinson-Foulds
 
+# saveRDS(dist_bhv, "forests/chaillou/chaillou-dist-bhv.rds")
+# saveRDS(dist_rf,  "forests/chaillou/chaillou-dist-rf.rds")
+# dist_bhv <- readRDS("forests/chaillou/chaillou-dist-bhv.rds")
+# dist_rf <-  readRDS("forests/chaillou/chaillou-dist-rf.rds")
+
 # PCoA
 pcoa_bhv <- pcoa(dist_bhv) 
 pcoa_rf <- pcoa(dist_rf) 
+
+# saveRDS(pcoa_bhv, "forests/chaillou/chaillou-pcoa-bhv.rds")
+# saveRDS(pcoa_rf,  "forests/chaillou/chaillou-pcoa-rf.rds")
+# pcoa_bhv <- readRDS("forests/chaillou/chaillou-pcoa-bhv.rds")
+# pcoa_rf <-  readRDS("forests/chaillou/chaillou-pcoa-rf.rds")
 
 # Distances to correlation tree
 dist_df_bhv <- tibble(Distance = dist_bhv[1:(length(tree_types) - 1)], Type = tree_types[-1])
@@ -128,26 +140,7 @@ as_tibble(TukeyHSD(aov_rf, "Type")$Type, rownames = "X")
 
 ## Themes 
 
-mytheme <-
-  theme_minimal() +
-  theme(axis.text = element_text(size = 8), 
-        axis.title = element_text(size = 12),
-        legend.position = "none")
-
-
-color_values <- c("Correlation" = "#C77CFF", "Phylogeny" = "#F8766D", 
-                  "Bootstrap" = "#00BFC4", "Random Correlation" = "#7CAE00",
-                  "Random Phylogeny" = "#FFA500")
-
-size_values <- c("Correlation" = 4, "Phylogeny" = 4, "Bootstrap" = 1, 
-                 "Random Correlation" = 1, "Random Phylogeny" = 1)
-
-alpha_values <- c("Correlation" = 0.8, "Phylogeny" = 0.8, "Bootstrap" = .4, 
-                  "Random Correlation" = .4, "Random Phylogeny" = .4)
-
-shape_values <- c("Correlation" = 17, "Phylogeny" = 16, "Bootstrap" = 2, 
-                  "Random Correlation" = 6, "Random Phylogeny" = 1)
-
+source("figures/theme.R")
 
 ## Boxplots
 
@@ -170,7 +163,7 @@ dist_df_bhv %>%
   labs(x = NULL, y = "Distance to correlation tree") +
   mytheme
 
-ggsave("forests/chaillou/chaillou-bhv-boxplot.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/chaillou/chaillou-boxplot-bhv.png", width = 7.5, height = 5, dpi = "retina")
 
 dist_df_rf %>% 
   filter(!Type %in% c("Correlation", "Phylogeny")) %>% 
@@ -188,7 +181,7 @@ dist_df_rf %>%
   labs(x = NULL, y = "Distance to correlation tree") +
   mytheme
 
-ggsave("forests/chaillou/chaillou-rf-boxplot.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/chaillou/chaillou-boxplot-rf.png", width = 7.5, height = 5, dpi = "retina")
 
 
 ## PCoAs
@@ -208,7 +201,7 @@ pcoa_bhv$vectors %>%
        y = paste0("Axis 2 (",round(pcoa_bhv$values$Relative_eig[2]*100, 2), " %)")) +
   mytheme
 
-ggsave("forests/chaillou/chaillou-bhv-pcoa.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/chaillou/chaillou-pcoa-bhv.png", width = 7.5, height = 5, dpi = "retina")
 
 pcoa_rf$vectors %>%
   as_tibble() %>%
@@ -225,4 +218,4 @@ pcoa_rf$vectors %>%
        y = paste0("Axis 2 (",round(pcoa_rf$values$Relative_eig[2]*100, 2), " %)")) +
   mytheme
 
-ggsave("forests/chaillou/chaillou-rf-pcoa.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/chaillou/chaillou-pcoa-rf.png", width = 7.5, height = 5, dpi = "retina")
