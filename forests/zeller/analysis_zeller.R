@@ -115,13 +115,16 @@ trees_rand_tax <-
 
 forest <- c(tree_cor, tree_tax, trees_boot, trees_rand_cor, trees_rand_tax)
 
-tree_types <- 
+tree_labels <- 
   factor(c("Correlation", "Taxonomy", 
            rep("Bootstrap", N_boot), 
            rep("Random Correlation", N_rand), 
            rep("Random Taxonomy", N_rand)),
          levels = c("Correlation", "Bootstrap", 
                     "Random Correlation", "Random Taxonomy", "Taxonomy"))
+
+# saveRDS(tree_labels, "forests/zeller/zeller-tree-labels.rds")
+# tree_labels <- readRDS("forests/zeller/zeller-tree-labels.rds")
 
 
 #### Distances and models ####
@@ -130,13 +133,23 @@ tree_types <-
 dist_bhv <- future_dist_BHV(forest) # Billera-Holmes-Vogtmann
 dist_rf <- dist.topo(unroot(forest)) # Robinson-Foulds
 
+# saveRDS(dist_bhv, "forests/zeller/zeller-dist-bhv.rds")
+# saveRDS(dist_rf,  "forests/zeller/zeller-dist-rf.rds")
+# dist_bhv <- readRDS("forests/zeller/zeller-dist-bhv.rds")
+# dist_rf <-  readRDS("forests/zeller/zeller-dist-rf.rds")
+
 # PCoA
 pcoa_bhv <- pcoa(dist_bhv) 
 pcoa_rf <- pcoa(dist_rf) 
 
+# saveRDS(pcoa_bhv, "forests/zeller/zeller-pcoa-bhv.rds")
+# saveRDS(pcoa_rf,  "forests/zeller/zeller-pcoa-rf.rds")
+# pcoa_bhv <- readRDS("forests/zeller/zeller-pcoa-bhv.rds")
+# pcoa_rf <-  readRDS("forests/zeller/zeller-pcoa-rf.rds")
+
 # Distances to correlation tree
-dist_df_bhv <- tibble(Distance = dist_bhv[1:(length(tree_types) - 1)], Type = tree_types[-1])
-dist_df_rf  <- tibble(Distance = dist_rf[1:(length(tree_types) - 1)],  Type = tree_types[-1])
+dist_df_bhv <- tibble(Distance = dist_bhv[1:(length(tree_labels) - 1)], Type = tree_labels[-1])
+dist_df_rf  <- tibble(Distance = dist_rf[1:(length(tree_labels) - 1)],  Type = tree_labels[-1])
 
 # Linear models
 lm_bhv <- lm(Distance ~ Type, data = dist_df_bhv)
@@ -157,28 +170,9 @@ as_tibble(TukeyHSD(aov_rf, "Type")$Type, rownames = "X")
 
 #### Plots ####
 
-## Themes 
+## Theme
 
-mytheme <-
-  theme_minimal() +
-  theme(axis.text = element_text(size = 8), 
-        axis.title = element_text(size = 12),
-        legend.position = "none")
-
-
-color_values <- c("Correlation" = "#C77CFF", "Taxonomy" = "#F8766D", 
-                  "Bootstrap" = "#00BFC4", "Random Correlation" = "#7CAE00",
-                  "Random Taxonomy" = "#FFA500")
-
-size_values <- c("Correlation" = 4, "Taxonomy" = 4, "Bootstrap" = 1, 
-                 "Random Correlation" = 1, "Random Taxonomy" = 1)
-
-alpha_values <- c("Correlation" = 0.8, "Taxonomy" = 0.8, "Bootstrap" = .4, 
-                  "Random Correlation" = .4, "Random Taxonomy" = .4)
-
-shape_values <- c("Correlation" = 17, "Taxonomy" = 16, "Bootstrap" = 2, 
-                  "Random Correlation" = 6, "Random Taxonomy" = 1)
-
+source("figures/theme.R")
 
 ## Boxplots
 
@@ -201,7 +195,7 @@ dist_df_bhv %>%
   labs(x = NULL, y = "Distance to correlation tree") +
   mytheme
 
-ggsave("forests/zeller/zeller-bhv-boxplot.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/zeller/zeller-boxplot-bhv.png", width = 7.5, height = 5, dpi = "retina")
 
 dist_df_rf %>% 
   filter(!Type %in% c("Correlation", "Taxonomy")) %>% 
@@ -219,14 +213,14 @@ dist_df_rf %>%
   labs(x = NULL, y = "Distance to correlation tree") +
   mytheme
 
-ggsave("forests/zeller/zeller-rf-boxplot.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/zeller/zeller-boxplot-rf.png", width = 7.5, height = 5, dpi = "retina")
 
 
 ## PCoAs
 
 pcoa_bhv$vectors %>%
   as_tibble() %>%
-  mutate(Type = tree_types) %>% 
+  mutate(Type = tree_labels) %>% 
   ggplot() +
   aes(Axis.1, Axis.2, 
       color = Type, shape = Type, size = Type, alpha = Type) +
@@ -239,11 +233,11 @@ pcoa_bhv$vectors %>%
        y = paste0("Axis 2 (",round(pcoa_bhv$values$Relative_eig[2]*100, 2), " %)")) +
   mytheme
 
-ggsave("forests/zeller/zeller-bhv-pcoa.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/zeller/zeller-pcoa-bhv.png", width = 7.5, height = 5, dpi = "retina")
 
 pcoa_rf$vectors %>%
   as_tibble() %>%
-  mutate(Type = tree_types) %>% 
+  mutate(Type = tree_labels) %>% 
   ggplot() +
   aes(Axis.1, Axis.2, 
       color = Type, shape = Type, size = Type, alpha = Type) +
@@ -256,4 +250,4 @@ pcoa_rf$vectors %>%
        y = paste0("Axis 2 (",round(pcoa_rf$values$Relative_eig[2]*100, 2), " %)")) +
   mytheme
 
-ggsave("forests/zeller/zeller-rf-pcoa.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/zeller/zeller-pcoa-rf.png", width = 7.5, height = 5, dpi = "retina")
