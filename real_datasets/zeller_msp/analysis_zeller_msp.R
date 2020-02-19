@@ -34,6 +34,9 @@ set.seed(42)
 tree_cor <- correlation_tree(df_abund, method = "spearman")
 tree_rand_cor <- shuffle_tiplabels(tree_cor)
 
+# saveRDS(tree_cor, "real_datasets/zeller_msp/zeller_msp-tree_cor.rds")
+# tree_cor <- readRDS("real_datasets/zeller_msp/zeller_msp-tree_cor.rds")
+
 
 #### Tree FDR ####
 
@@ -66,25 +69,25 @@ Y <- as_factor(df_sample$study_condition)
 
 ## Tree FDR
 
-set.seed(42)
-
 fdrobj_cor <- my_TreeFDR(X = X, Y = Y, tree = tree_cor)
 fdrobj_rand_cor <- my_TreeFDR(X = X, Y = Y, tree = tree_rand_cor)
 
-## Agregation
+list_fdrobj <- list(cor = fdrobj_cor, rand_cor = fdrobj_rand_cor)
 
-list_fdrobj <- list(fdrobj_cor, fdrobj_rand_cor)
+# saveRDS(list_fdrobj, "real_datasets/zeller_msp/zeller_msp-fdrobj.rds")
+# list_fdrobj <- readRDS("real_datasets/zeller_msp/zeller_msp-fdrobj.rds")
 
 df_pvalues <-
-  tibble(genus = names(fdrobj_cor$p.unadj),
-         p_raw = fdrobj_cor$p.unadj,
+  tibble(genus = names(list_fdrobj$cor$p.unadj),
+         p_raw = list_fdrobj$cor$p.unadj,
          p_bh = p.adjust(p_raw, method = "BH"),
          p_by = p.adjust(p_raw, method = "BY"),
-         p_cor = fdrobj_cor$p.adj,
-         p_rand_cor = fdrobj_rand_cor$p.adj) %>%
+         p_cor = list_fdrobj$cor$p.adj,
+         p_rand_cor = list_fdrobj$rand_cor$p.adj) %>%
   gather(-genus, key = "method", value = "pvalue") %>%
   mutate(method = str_remove(method, "p_"),
          method = as_factor(method))
+
 
 #### Results ####
 
@@ -103,13 +106,7 @@ df_pvalues %>%
 
 ## Number of detected MSP
 
-color_values <- c("Correlation" = "#C77CFF", "Taxonomy" = "#F8766D",
-                  "Random correlation" = "#7CAE00", "Random Taxonomy" = "#FFA500",
-                  "BH" = "#4169E1")
-
-linetype_values <- c("Correlation" = "solid", "Taxonomy" = "dotdash",
-                     "Random correlation" = "dashed", "Random Taxonomy" = "twodash",
-                     "BH" = "dotted")
+source("figures/theme.R")
 
 l_pvalues <-
   df_pvalues %>%
@@ -122,7 +119,7 @@ df_roc <-
   tibble(threshold = seq(0, 0.15, by = 10^-4)) %>%
   mutate(BH = map_dbl(threshold, ~ sum(l_pvalues$bh < .)),
          Correlation = map_dbl(threshold, ~ sum(l_pvalues$cor < .)),
-         `Random correlation` = map_dbl(threshold, ~ sum(l_pvalues$rand_cor < .))) %>%
+         `Random Correlation` = map_dbl(threshold, ~ sum(l_pvalues$rand_cor < .))) %>%
   gather(key = "method", value = "number", -threshold) %>%
   mutate(method = as_factor(method))
 
