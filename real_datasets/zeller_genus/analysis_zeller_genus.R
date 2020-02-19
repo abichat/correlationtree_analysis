@@ -90,8 +90,6 @@ test.func.kw <- function (X, Y, O) {
 my_TreeFDR <- partial(TreeFDR2, B = 200, q.cutoff = 0.5, eff.sign = FALSE,
                       test.func = test.func.kw, perm.func = perm.func)
 
-# set.seed(42)
-
 ## Formating
 
 X <-
@@ -110,22 +108,28 @@ fdrobj_tax <- my_TreeFDR(X = X, Y = Y, O = O, tree = tree_tax)
 fdrobj_rand_cor <- my_TreeFDR(X = X, Y = Y, O = O, tree = tree_rand_cor)
 fdrobj_rand_tax <- my_TreeFDR(X = X, Y = Y, O = O, tree = tree_rand_tax)
 
-## Agregation
+list_fdrobj <- list(cor = fdrobj_cor, tax = fdrobj_tax, 
+                    rand_cor = fdrobj_rand_cor, 
+                    rand_tax = fdrobj_rand_tax)
 
-list_fdrobj <- list(fdrobj_cor, fdrobj_tax, fdrobj_rand_cor, fdrobj_rand_tax)
+# saveRDS(list_fdrobj, "real_datasets/zeller_genus/zeller_genus-fdrobj.rds")
+# list_fdrobj <- readRDS("real_datasets/zeller_genus/zeller_genus-fdrobj.rds")
+
+## p-values
 
 df_pvalues <-
-  tibble(genus = names(fdrobj_cor$p.unadj),
-         p_raw = fdrobj_cor$p.unadj,
+  tibble(genus = names(list_fdrobj$cor$p.unadj),
+         p_raw = list_fdrobj$cor$p.unadj,
          p_bh = p.adjust(p_raw, method = "BH"),
          p_by = p.adjust(p_raw, method = "BY"),
-         p_cor = fdrobj_cor$p.adj,
-         p_tax = fdrobj_tax$p.adj,
-         p_rand_cor = fdrobj_rand_cor$p.adj,
-         p_rand_tax = fdrobj_rand_tax$p.adj) %>%
+         p_cor = list_fdrobj$cor$p.adj,
+         p_tax = list_fdrobj$tax$p.adj,
+         p_rand_cor = list_fdrobj$rand_cor$p.adj,
+         p_rand_tax = list_fdrobj$rand_tax$p.adj) %>%
   gather(-genus, key = "method", value = "pvalue") %>%
   mutate(method = str_remove(method, "p_"),
          method = as_factor(method))
+
 
 #### Results ####
 
@@ -142,6 +146,8 @@ df_pvalues %>%
 
 #### Plot ###
 
+source("figures/theme.R")
+
 l_pvalues <-
   df_pvalues %>%
   filter(method %in% c("bh", "cor","tax", "rand_cor", "rand_tax")) %>%
@@ -149,14 +155,6 @@ l_pvalues <-
   group_split() %>%
   map(pull, pvalue) %>%
   set_names(c("bh", "cor", "tax", "rand_cor", "rand_tax"))
-
-color_values <- c("Correlation" = "#C77CFF", "Taxonomy" = "#F8766D",
-                  "Random correlation" = "#7CAE00", "Random Taxonomy" = "#FFA500",
-                  "BH" = "#4169E1")
-
-linetype_values <- c("Correlation" = "solid", "Taxonomy" = "dotdash",
-                     "Random correlation" = "dashed", "Random Taxonomy" = "twodash",
-                     "BH" = "dotted")
 
 df_roc <-
   tibble(threshold = seq(0, 0.16, by = 10^-4)) %>%
@@ -168,7 +166,7 @@ df_roc <-
   gather(key = "method", value = "number", -threshold) %>%
   mutate(method = factor(method, levels = c("bh", "cor", "tax", "rand_cor", "rand_tax"),
                          labels = c("BH", "Correlation", "Taxonomy",
-                                    "Random correlation", "Random Taxonomy")),
+                                    "Random Correlation", "Random Taxonomy")),
          method = fct_reorder2(method, threshold, number))
 
 
