@@ -1,7 +1,10 @@
 library(correlationtree)
 library(tidyverse)
 library(structSSI)
+library(cowplot)
 library(igraph)
+library(ggtree)
+library(scales)
 library(ape)
 
 
@@ -16,6 +19,10 @@ environments <- sample_data(chlamydiae)$SampleType
 tree_phy <- chlamydiae@phy_tree
 tree_cor <- correlation_tree(abundances, col = 0, method = "spearman", remove = FALSE)
 
+# saveRDS(tree_phy, "real_datasets/chlamydiae/chlamydiae-tree_phy.rds")
+# tree_phy <- readRDS("real_datasets/chlamydiae/chlamydiae-tree_phy.rds")
+# saveRDS(tree_cor, "real_datasets/chlamydiae/chlamydiae-tree_cor.rds")
+# tree_cor <- readRDS("real_datasets/chlamydiae/chlamydiae-tree_cor.rds")
 
 #### Hierarchical FDR ####
 
@@ -54,6 +61,9 @@ tbl_notree <-
 
 tbl_pvalues <- reduce(list(tbl_notree, tbl_phy, tbl_cor), left_join, by = "OTU")
 
+# saveRDS(tbl_pvalues, "real_datasets/chlamydiae/chlamydiae-pvalues.rds")
+# tbl_pvalues <- readRDS("real_datasets/chlamydiae/chlamydiae-pvalues.rds")
+
 detected_phy <-
   tbl_pvalues %>%
   filter(phy < alpha) %>%
@@ -82,9 +92,37 @@ tbl_pvalues %>% filter(bh < 0.324) %>% pull(OTU) %>% length()
 
 #### Plot ####
 
-library(cowplot)
-library(ggtree)
-library(scales)
+otu_cor <-
+  tbl_pvalues %>% 
+  filter(cor < 0.1, phy > 0.1 | is.na(phy)) %>% 
+  pull(OTU)
+
+df_abund_cor <-
+  abundances %>% 
+  as.data.frame() %>% 
+  as_tibble(rownames = "OTU") %>% 
+  filter(OTU %in% otu_cor) %>% 
+  gather(key = "X.SampleID", value = "Abundance", -OTU) %>%
+  left_join(tibble("X.SampleID" = colnames(abundances),  SampleType = environments), 
+            by = "X.SampleID") %>% 
+  mutate(SampleType = fct_recode(SampleType, FE = "Feces", FW = "Freshwater", 
+                                 CK ="Freshwater (creek)", MO = "Mock", 
+                                 OC = "Ocean", SE = "Sediment (estuary)", 
+                                 SK = "Skin", SO = "Soil", TO = "Tongue"),
+         SampleType = fct_relevel(SampleType, "SO", "SE", "OC", "CK", "FW",
+                                  "SK", "TO", "FE", "MO"),
+         OTU = as_factor(OTU)) 
+
+# saveRDS(df_abund_cor, "real_datasets/chlamydiae/chlamydiae-abund_cor.rds")
+# df_abund_cor <- readRDS("real_datasets/chlamydiae/chlamydiae-abund_cor.rds")
+
+mytheme <-
+  theme_minimal() +
+  theme(strip.text = element_text(size = 10),
+        legend.text = element_text(size = 6),
+        legend.title = element_text(size = 7),
+        axis.text.y = element_text(size = 6),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 6)) 
 
 ## Trees 
 
@@ -134,35 +172,6 @@ p_trees <-
             label_x = c(0, 0.9, 0, 0, 0, 0.9), label_y = c(1, 1, 0, 0, 0.12, 0.12))
 
 ## Boxplots 
-
-otu_cor <-
-  tbl_pvalues %>% 
-  filter(cor < 0.1, phy > 0.1 | is.na(phy)) %>% 
-  pull(OTU)
-
-df_abund_cor <-
-  abundances %>% 
-  as.data.frame() %>% 
-  as_tibble(rownames = "OTU") %>% 
-  filter(OTU %in% otu_cor) %>% 
-  gather(key = "X.SampleID", value = "Abundance", -OTU) %>%
-  left_join(tibble("X.SampleID" = colnames(abundances),  SampleType = environments), 
-            by = "X.SampleID") %>% 
-  mutate(SampleType = fct_recode(SampleType, FE = "Feces", FW = "Freshwater", 
-                                 CK ="Freshwater (creek)", MO = "Mock", 
-                                 OC = "Ocean", SE = "Sediment (estuary)", 
-                                 SK = "Skin", SO = "Soil", TO = "Tongue"),
-         SampleType = fct_relevel(SampleType, "SO", "SE", "OC", "CK", "FW",
-                                  "SK", "TO", "FE", "MO"),
-         OTU = as_factor(OTU)) 
-
-mytheme <-
-  theme_minimal() +
-  theme(strip.text = element_text(size = 10),
-        legend.text = element_text(size = 6),
-        legend.title = element_text(size = 7),
-        axis.text.y = element_text(size = 6),
-        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 6)) 
 
 p_abund1 <- 
   df_abund_cor %>% 
