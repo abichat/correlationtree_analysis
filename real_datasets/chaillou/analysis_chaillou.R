@@ -88,14 +88,16 @@ environments <-
 tree_cor <- correlation_tree(abundances, matrix = TRUE, method = "spearman")
 mean_lineage <- mean_lineage_length(tree_cor)
 
-# write.tree(tree_cor, file = "real_datasets/chaillou/cortree_chaillou.nwk")
-
 tree_phy <- 
   read.tree("real_datasets/chaillou/phytree_chaillou.nwk") %>% 
   prune_taxa(OTU, .)
 
 tree_phy$edge.length <- tree_phy$edge.length * mean_lineage / mean_lineage_length(tree_phy)
 
+# saveRDS(tree_cor, "real_datasets/chaillou/chaillou-tree_cor.rds")
+# tree_cor <- readRDS("real_datasets/chaillou/chaillou-tree_cor.rds")
+# saveRDS(tree_phy, "real_datasets/chaillou/chaillou-tree_phy.rds")
+# tree_phy <- readRDS("real_datasets/chaillou/chaillou-tree_phy.rds")
 
 #### Hierarchical FDR ####
 
@@ -110,7 +112,7 @@ EL_phy <-
 
 pval_phy <- treePValues(EL_phy, abundances, environments)
 hpval_phy <- hFDR.adjust(pval_phy, EL_phy, alpha = alpha)
-tbl_phy <- tibble(OTU = OTU, phy = hpval_phy@p.vals[OTU, ]$adjp)
+df_phy <- tibble(OTU = OTU, phy = hpval_phy@p.vals[OTU, ]$adjp)
 
 ## Correlation correction
 
@@ -121,53 +123,53 @@ EL_cor <-
 
 pval_cor <- treePValues(EL_cor, abundances, environments)
 hpval_cor <- hFDR.adjust(pval_cor, EL_cor, alpha = alpha)
-tbl_cor <- tibble(OTU = OTU, cor = hpval_cor@p.vals[OTU, ]$adjp)
+df_cor <- tibble(OTU = OTU, cor = hpval_cor@p.vals[OTU, ]$adjp)
 
 ## Benjamini-Hochberg correction
 
-tbl_notree <- 
+df_notree <- 
   pval_phy[OTU] %>% 
   tibble(OTU = names(.), unadj = .) %>% 
   mutate(bh = p.adjust(unadj, method = "fdr"))
 
 ## Aggregation
 
-tbl_pvalues <- reduce(list(tbl_notree, tbl_phy, tbl_cor), left_join, by = "OTU")
+df_pvalues <- reduce(list(df_notree, df_phy, df_cor), left_join, by = "OTU")
 
 detected_phy <-
-  tbl_pvalues %>%
+  df_pvalues %>%
   filter(phy < alpha) %>%
   pull(OTU)
 
 detected_cor <-
-  tbl_pvalues %>%
+  df_pvalues %>%
   filter(cor < alpha) %>%
   pull(OTU)
 
 
 #### Results ####
 
-# A posteriori FDR control for phylogenetic correction
+# A posteriori FDR control for phylogenetic correction: 0.040
 1.44 * EstimatedHFDRControl(hpval_phy)$tip
-# A posteriori FDR control for correlation correction
+# A posteriori FDR control for correlation correction: 0.038 
 1.44 * EstimatedHFDRControl(hpval_cor)$tip
 
-# Number of species detected by phylogenetic correction
+# Number of species detected by phylogenetic correction: 28
 length(detected_phy)
-# Number of species detected by correlation correction
+# Number of species detected by correlation correction: 34
 length(detected_cor)
-# Number of species detected by both corrections
+# Number of species detected by both corrections: 22
 length(intersect(detected_cor, detected_phy))
-# Number of detected species by BH with similar FDR
-tbl_pvalues %>% filter(bh < 0.04) %>% nrow()
+# Number of detected species by BH with similar FDR: 55
+df_pvalues %>% filter(bh < 0.04) %>% nrow()
 
 
 #### Plots ####
 
 ## Abundances only one
 
-tbl_pvalues_filtered <- 
-  tbl_pvalues %>% 
+df_pvalues_filtered <- 
+  df_pvalues %>% 
   mutate(Detected = case_when(cor <= 0.01 & phy <= 0.01 ~ "Both",
                               cor <= 0.01               ~ "Correlation",
                               phy <= 0.01               ~ "Phylogeny",
@@ -175,11 +177,14 @@ tbl_pvalues_filtered <-
          Detected = fct_relevel(Detected, "Correlation", "Both", "Phylogeny", "None"),
          OTU_displayed = if_else(Detected != "None", OTU, "", missing = ""))
 
+# saveRDS(df_pvalues_filtered, "real_datasets/chaillou/chaillou-df_pvalues_filtered.rds")
+# df_pvalues_filtered <- readRDS("real_datasets/chaillou/chaillou-df_pvalues_filtered.rds")
+
 df_4_boxplots <-
   abundances %>% 
   as_tibble(rownames = "OTU") %>% 
   gather(key = "Sample", value = "Count", -OTU) %>% 
-  left_join(select(tbl_pvalues_filtered, OTU, Detected), by = "OTU") %>% 
+  left_join(select(df_pvalues_filtered, OTU, Detected), by = "OTU") %>% 
   arrange(Detected, OTU) %>% 
   mutate(OTU = as_factor(OTU),
          Env = str_sub(Sample, end = 2),
@@ -193,6 +198,9 @@ df_4_boxplots <-
            Env == "SF" ~ "SS",
            Env == "VH" ~ "GV"),
          Env = fct_relevel(Env, "SB", "PS", "GB", "GV", "Sh", "CF", "SF", "SS"))
+
+# saveRDS(df_4_boxplots, "real_datasets/chaillou/chaillou-df_4_boxplots.rds")
+# df_4_boxplots <- readRDS("real_datasets/chaillou/chaillou-df_4_boxplots.rds")
 
 bp_cor <-
   df_4_boxplots %>% 
@@ -233,22 +241,18 @@ plot_grid(
   legend_abund, 
   ncol = 1, rel_heights = c(3, 0.1))
 
-ggsave("real_datasets/chaillou/chaillou-abund_only_one.png", width = 15, height = 12, units = "cm")
+ggsave("real_datasets/chaillou/chaillou-abund_only_one.png", 
+       width = 15, height = 12, units = "cm")
 
 ## Evidences on tree
 
 palette_detected <- setNames(c("blue", "purple", "firebrick", "black"), 
                              c("Correlation", "Both", "Phylogeny", "None"))
 
-detected_only_one <- 
-  tbl_pvalues_filtered %>% 
-  filter(Detected %in% c("Correlation", "Phylogeny")) %>% 
-  pull(OTU)
-
 p1 <-
   tree_cor %>%
-  ggtree(branch.length="none", color = "grey30") %<+%
-  tbl_pvalues_filtered +
+  ggtree(branch.length = "none", color = "grey30") %<+%
+  df_pvalues_filtered +
   geom_hilight(node = 163, fill = "green", alpha = 0.5) +
   geom_tippoint(aes(size = -log10(cor), color = Detected), alpha = 0.5) +
   geom_tiplab(aes(label = OTU_displayed, color = Detected), vjust = 0, hjust = 1, 
@@ -261,7 +265,7 @@ legend_tree <- get_legend(p1 + theme(legend.position = "bottom"))
 p2 <-
   tree_phy %>% 
   ggtree(color = "grey30") %<+%
-  tbl_pvalues_filtered +
+  df_pvalues_filtered +
   geom_tippoint(aes(size = -log10(phy), color = Detected), alpha = 0.5) +
   geom_tiplab(aes(label = OTU_displayed, color = Detected), vjust = 0, hjust = 0,
               size = 2.5, fontface = "bold") +
@@ -278,7 +282,8 @@ plot_grid(
   legend_tree, 
   ncol = 1, rel_heights = c(2, 0.06))
 
-ggsave("real_datasets/chaillou/chaillou-evidences_on_trees.png", width = 15, height = 22, units = "cm")
+ggsave("real_datasets/chaillou/chaillou-evidences_on_trees.png", 
+       width = 15, height = 22, units = "cm")
 
 ## Focus on subtree
 
@@ -286,6 +291,10 @@ otu_subtree <- paste0("otu_0", c("0241", "0516", "0519", "0656", "1495"))
 subtree_cor <- keep.tip(tree_cor, otu_subtree)
 
 subtree_cor$node.label <- as.character(6:9)
+
+# saveRDS(subtree_cor, "real_datasets/chaillou/chaillou-tree_cob_sub.rds")
+# subtree_cor <- readRDS("real_datasets/chaillou/chaillou-tree_cob_sub.rds")
+
 
 p_value_lm <- function(otus) {
   glance(lm(colSums(abundances[otu_subtree[otus], ]) ~ environments))$p.value
@@ -295,7 +304,7 @@ p_value_kw <- function(otus) {
   glance(kruskal.test(colSums(abundances[otu_subtree[otus], ]) ~ environments))$p.value
 }
 
-tbl_node_pv <-
+df_node_pv <-
   tibble(mrca = c(1, 2, 3, 4, 5, 6, 7, 8, 9),
          merge = list(1, 2, 3, 4, 5, 1:5, 1:2, 3:5, 3:4),
          p_lm = map_dbl(merge, p_value_lm),
@@ -304,8 +313,11 @@ tbl_node_pv <-
          detected = if_else(mrca %in% detected_phy, "Phylogeny", "None")) %>% 
   mutate_at(vars(starts_with("p_")), ~ prettyNum(., format = "e", digits = 2))
 
-tbl_node_pv$p_lm[6] <- paste(tbl_node_pv$p_lm[6], "(F-test p-value)")
-tbl_node_pv$p_kw[6] <- paste(tbl_node_pv$p_kw[6], "(KW-test p-value)")
+df_node_pv$p_lm[6] <- paste(df_node_pv$p_lm[6], "(F-test p-value)")
+df_node_pv$p_kw[6] <- paste(df_node_pv$p_kw[6], "(KW-test p-value)")
+
+# saveRDS(df_node_pv, "real_datasets/chaillou/chaillou-df_node_pv.rds")
+# df_node_pv <- readRDS("real_datasets/chaillou/chaillou-df_node_pv.rds")
 
 n_y <- 0.08
 n_x <- 0.005
@@ -315,7 +327,7 @@ col_kw <- "grey60"
 
 p_subtree <-
   ggtree(subtree_cor) %<+% 
-  tbl_node_pv +
+  df_node_pv +
   geom_point() +
   geom_tiplab(aes(color = detected), nudge_y = 0.1, hjust = 1.1) +
   geom_nodelab(aes(label = p_lm), color = col_lm, nudge_x = n_x, nudge_y = n_y, hjust = hj) +
@@ -327,7 +339,7 @@ p_subtree <-
 
 bp_subtree <-
   df_4_boxplots %>% 
-  filter(OTU %in% otu_subtree) %>% 
+  filter(OTU %in% subtree_cor$tip.label) %>% 
   mutate(OTU = fct_relevel(OTU, "otu_00656", "otu_00519", "otu_01495", "otu_00516")) %>% 
   ggplot() +
   aes(x = Env, y = Count) +
@@ -342,4 +354,5 @@ bp_subtree <-
 
 plot_grid(p_subtree, bp_subtree, ncol = 2)
 
-ggsave("real_datasets/chaillou/chaillou-focus_subtree.png", width = 15, height = 15, units = "cm")
+ggsave("real_datasets/chaillou/chaillou-focus_subtree.png", 
+       width = 15, height = 15, units = "cm")
