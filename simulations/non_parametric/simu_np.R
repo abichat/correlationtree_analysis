@@ -82,6 +82,9 @@ taxa_all <-
 
 Ntaxa <- length(taxa_all)
 
+saveRDS(Ntaxa, "simulations/non_parametric/simus_np-ntaxa.rds")
+# Ntaxa <- readRDS("simulations/non_parametric/simus_np-ntaxa.rds")
+
 taxa_top30 <- taxa_all[1:30]
 
 
@@ -119,7 +122,7 @@ test.func.wt <- function (X, Y) {
   return(list(p.value=obj[1, ], e.sign=obj[2, ]))
 }
 
-B <- 20 # In the paper, B = 100
+B <- 40 # In the paper, B = 100
 
 my_TreeFDR <- partial(TreeFDR2, B = B, q.cutoff = 0.5,
                       test.func = test.func.wt, perm.func = perm.func)
@@ -138,15 +141,15 @@ taxa <- rownames(X)
 
 fc <- c(5, 10, 15, 20)
 nH1 <- c(2, 5, 10, 15)
-repl <- 30 # In the paper, repl > 600 
+repl <- 100 # In the paper, repl > 600 
 
 set.seed(42)
-
+ 
 ## Initialisation
 
 time0 <- format(Sys.time(), "%y-%m-%d_%H-%M")
 
-df <-
+df_simus <-
   crossing(fc, nH1) %>% 
   rerun(repl, .) %>% 
   bind_rows() %>% 
@@ -164,16 +167,19 @@ df <-
 
 ## Analysis
 
-df <- 
-  df %>% # Could take several hours
+df_simus <-
+  df_simus %>% # Could take several hours
   mutate(fdrobj_cor = future_pmap(list(X = newdata, Y = samp_lgl, tree = tree_cor), my_TreeFDR),
          fdrobj_randcor = future_pmap(list(X = newdata, Y = samp_lgl, tree = tree_randcor), my_TreeFDR),
          fdrobj_tax = future_pmap(list(X = newdata, Y = samp_lgl), my_TreeFDR, tree = tree_tax),
          fdrobj_randtax = future_pmap(list(X = newdata, Y = samp_lgl, tree = tree_randtax), my_TreeFDR)) %>% 
   select(-newdata, -ind_samp, -ind_taxa, -samp_lgl, -tree_cor, -tree_randtax, -tree_randcor)
 
+saveRDS(df_simus, "simulations/non_parametric/simus_np-df_simus.rds")
+# df_simus <- readRDS("simulations/non_parametric/simus_np-df_simus.rds")
+
 df_gathered <-
-  df %>% 
+  df_simus %>% 
   gather(method, fdr_obj, -ID, -fc, -nH1, -time, -B, -taxa_diffs) %>% 
   mutate(method = str_remove_all(method, "fdrobj_"))
 
