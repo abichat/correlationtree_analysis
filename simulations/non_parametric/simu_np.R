@@ -82,7 +82,7 @@ taxa_all <-
 
 Ntaxa <- length(taxa_all)
 
-saveRDS(Ntaxa, "simulations/non_parametric/simus_np-ntaxa.rds")
+# saveRDS(Ntaxa, "simulations/non_parametric/simus_np-ntaxa.rds")
 # Ntaxa <- readRDS("simulations/non_parametric/simus_np-ntaxa.rds")
 
 taxa_top30 <- taxa_all[1:30]
@@ -175,13 +175,17 @@ df_simus <-
          fdrobj_randtax = future_pmap(list(X = newdata, Y = samp_lgl, tree = tree_randtax), my_TreeFDR)) %>% 
   select(-newdata, -ind_samp, -ind_taxa, -samp_lgl, -tree_cor, -tree_randtax, -tree_randcor)
 
-saveRDS(df_simus, "simulations/non_parametric/simus_np-df_simus.rds")
+# Too big to be committed
+# saveRDS(df_simus, "simulations/non_parametric/simus_np-df_simus.rds")
 # df_simus <- readRDS("simulations/non_parametric/simus_np-df_simus.rds")
 
 df_gathered <-
   df_simus %>% 
   gather(method, fdr_obj, -ID, -fc, -nH1, -time, -B, -taxa_diffs) %>% 
   mutate(method = str_remove_all(method, "fdrobj_"))
+
+# saveRDS(df_gathered, "simulations/non_parametric/simus_np-df_gathered.rds")
+# df_gathered <- readRDS("simulations/non_parametric/simus_np-df_gathered.rds")
 
 df_bh <- 
   df_gathered %>% 
@@ -212,6 +216,7 @@ df_eval <-
                         measures = c("BACC", "ACC", "TPR", "FDR", "F1"))) %>% 
   unnest(tidyebc) %>% 
   mutate(BACC = ifelse(is.nan(BACC), 0, BACC)) %>% 
+  mutate(FDR = ifelse(is.nan(FDR), 0, FDR)) %>% 
   select(-taxa_diffs, -detected)
 
 
