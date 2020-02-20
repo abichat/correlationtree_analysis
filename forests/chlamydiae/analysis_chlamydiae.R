@@ -188,7 +188,7 @@ pcoa_bhv$vectors %>%
        y = paste0("Axis 2 (",round(pcoa_bhv$values$Relative_eig[2]*100, 2), " %)")) +
   mytheme
 
-ggsave("forests/chlamydiae/chlamydia-pcoa-bhv.png", width = 7.5, height = 5, dpi = "retina")
+ggsave("forests/chlamydiae/chlamydiae-pcoa-bhv.png", width = 7.5, height = 5, dpi = "retina")
 
 pcoa_rf$vectors %>%
   as_tibble() %>%
