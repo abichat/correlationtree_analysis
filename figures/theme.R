@@ -49,7 +49,9 @@ shape_values <- c(
 linetype_values <- c(
   "Correlation" = "solid",
   "Taxonomy" = "dotdash",
+  "Phylogeny" = "dotdash",
   "Random Correlation" = "dashed",
   "Random Taxonomy" = "twodash",
+  "Random Phylogeny" = "twodash",
   "BH" = "dotted"
 )

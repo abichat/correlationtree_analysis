@@ -239,13 +239,7 @@ df_eval %>%
 
 #### Plots ####
 
-color_values <- c("Correlation" = "#C77CFF", "Taxonomy" = "#F8766D", 
-                  "Random Correlation" = "#7CAE00", "Random Taxonomy" = "#FFA500",
-                  "BH" = "#4169E1")
-
-linetype_values <- c("Correlation" = "solid", "Taxonomy" = "dotdash", 
-                     "Random Correlation" = "dashed", "Random Taxonomy" = "twodash",
-                     "BH" = "dotted")
+source("figures/theme.R")
 
 labels <- c("5" = "fc = 5", "10" = "fc = 10", "15" = "fc = 15", "20" = "fc = 20")
 
@@ -305,6 +299,7 @@ p_TPR <-
   geom_line(aes(linetype = method, group = method)) +
   geom_point(show.legend = FALSE) +
   scale_color_manual(values = color_values) +
+  scale_linetype_manual(values = linetype_values) +
   facet_wrap(~ fc, ncol = 4, labeller = labeller(fc = labels)) +
   labs(x = NULL, y = "TPR",
        color = "Method", linetype = "Method") +
@@ -333,6 +328,7 @@ p_FDR <-
   geom_line(aes(linetype = method, group = method)) +
   geom_point(show.legend = FALSE) +
   scale_color_manual(values = color_values) +
+  scale_linetype_manual(values = linetype_values) +
   facet_wrap(~ fc, ncol = 4, labeller = labeller(fc = labels)) +
   labs(x = "Proportion of null hypothesis", y = "FDR",
        color = "Method", linetype = "Method") +
