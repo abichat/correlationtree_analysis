@@ -70,20 +70,20 @@ This folder contains scripts that draw every figure in the article. Each script 
 # all_R <- list.files(path = ".", full.names = TRUE, pattern = ".*\\.R$", recursive = TRUE)
 # 
 # packages <-
-#   all_R %>% 
-#   map(parse) %>% 
-#   map(as.character) %>% 
-#   unlist() %>% 
-#   str_extract_all("^library(.*)$") %>% 
-#   unlist() %>% 
+#   all_R %>%
+#   map(parse) %>%
+#   map(as.character) %>%
+#   unlist() %>%
+#   str_extract_all("^library(.*)$") %>%
+#   unlist() %>%
 #   str_remove_all("library\\(|\\)")
 # 
 # df_package_version <-
-#   packages %>% 
-#   c(., "dplyr", "tidyr", "ggplot2", "purrr", "readr", "stringr", "forcats", "furrr") %>% 
-#   unique() %>% 
-#   sort() %>% 
-#   enframe(value = "Package", name = NULL) %>% 
+#   packages %>%
+#   c(., "dplyr", "tidyr", "ggplot2", "purrr", "readr", "stringr", "forcats", "furrr") %>%
+#   unique() %>%
+#   sort() %>%
+#   enframe(value = "Package", name = NULL) %>%
 #   mutate(Version = map_chr(Package, purrr::compose(as.character, packageVersion)))
 # 
 # knitr::kable(df_package_version)
