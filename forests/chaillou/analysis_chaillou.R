@@ -116,8 +116,8 @@ pcoa_rf <- pcoa(dist_rf)
 # pcoa_rf <-  readRDS("forests/chaillou/chaillou-pcoa-rf.rds")
 
 # Distances to correlation tree
-dist_df_bhv <- tibble(Distance = dist_bhv[1:(length(tree_types) - 1)], Type = tree_types[-1])
-dist_df_rf  <- tibble(Distance = dist_rf[1:(length(tree_types) - 1)],  Type = tree_types[-1])
+dist_df_bhv <- tibble(Distance = dist_bhv[1:(length(tree_labels) - 1)], Type = tree_labels[-1])
+dist_df_rf  <- tibble(Distance = dist_rf[1:(length(tree_labels) - 1)],  Type = tree_labels[-1])
 
 # Linear models
 lm_bhv <- lm(Distance ~ Type, data = dist_df_bhv)
@@ -188,7 +188,7 @@ ggsave("forests/chaillou/chaillou-boxplot-rf.png", width = 7.5, height = 5, dpi 
 
 pcoa_bhv$vectors %>%
   as_tibble() %>%
-  mutate(Type = tree_types) %>% 
+  mutate(Type = tree_labels) %>% 
   ggplot() +
   aes(Axis.1, Axis.2, 
       color = Type, shape = Type, size = Type, alpha = Type) +
@@ -205,7 +205,7 @@ ggsave("forests/chaillou/chaillou-pcoa-bhv.png", width = 7.5, height = 5, dpi = 
 
 pcoa_rf$vectors %>%
   as_tibble() %>%
-  mutate(Type = tree_types) %>% 
+  mutate(Type = tree_labels) %>% 
   ggplot() +
   aes(Axis.1, Axis.2, 
       color = Type, shape = Type, size = Type, alpha = Type) +
