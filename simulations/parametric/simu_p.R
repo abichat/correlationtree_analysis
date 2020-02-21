@@ -19,7 +19,10 @@ plan(multiprocess)
 N_sample <- 100
 samples <- paste0("S", c(paste0("0", c(paste0("0", 1:9), 10:99)), 100))
 
-N_otus <- 400
+Notus <- 400
+
+# saveRDS(Notus, "simulations/parametric/simus_p-notus.rds")
+# Notus <- readRDS("simulations/parametric/simus_p-notus.rds")
 
 nb_mean <- 10000
 nb_size <- 25
@@ -33,7 +36,7 @@ otus <-
   data %>% 
   rowSums() %>% 
   sort(decreasing = TRUE) %>% 
-  head(n = N_otus) %>% 
+  head(n = Notus) %>% 
   names()
 
 data_filtered <- data[otus, ]
@@ -117,7 +120,7 @@ my_TreeFDR <- partial(TreeFDR2, B = B, q.cutoff = 0.5,
 
 fc <- c(5, 10, 15, 20)
 nH1 <- c(2, 10, 25, 40) # In the paper, nH1 = c(2, 5, 10, 15, 25, 40)
-repl <- 8 # In the paper, repl > 600 
+repl <- 4 # In the paper, repl > 600 
 
 set.seed(42)
 
@@ -125,7 +128,7 @@ set.seed(42)
 
 time0 <- format(Sys.time(), "%y-%m-%d_%H-%M")
 
-df <-
+df_simus <-
   crossing(fc, nH1) %>% 
   rerun(repl, .) %>% 
   bind_rows() %>% 
@@ -144,18 +147,27 @@ df <-
 
 ## Analysis
 
-df <- 
-  df %>% # Could take several hours
+df_simus <- 
+  df_simus %>% # Could take several hours
   mutate(fdrobj_cor = future_pmap(list(X = newdata, Y = samp_lgl, tree = tree_cor), my_TreeFDR),
          fdrobj_randcor = future_pmap(list(X = newdata, Y = samp_lgl, tree = tree_randcor), my_TreeFDR),
          fdrobj_phy = future_pmap(list(X = newdata, Y = samp_lgl), my_TreeFDR, tree = tree_phy),
          fdrobj_randphy = future_pmap(list(X = newdata, Y = samp_lgl, tree = tree_randphy), my_TreeFDR)) %>% 
   select(-newdata, -ind_samp, -ind_otus, -samp_lgl, -tree_cor, -tree_randphy, -tree_randcor)
 
+## Too big to be committed
+# saveRDS(df_simus, "simulations/parametric/simus_p-df_simus.rds")
+# df_simus <- readRDS("simulations/parametric/simus_p-df_simus.rds")
+
 df_gathered <-
-  df %>% 
+  df_simus %>% 
   gather(method, fdr_obj, -ID, -fc, -nH1, -time, -B, -otus_diffs) %>% 
   mutate(method = str_remove_all(method, "fdrobj_"))
+
+## Too big to be committed
+# saveRDS(df_gathered, "simulations/parametric/simus_p-df_gathered.rds")
+# df_gathered <- readRDS("simulations/parametric/simus_p-df_gathered.rds")
+## TODO: split in 8 pieces
 
 df_bh <- 
   df_gathered %>% 
@@ -181,11 +193,12 @@ df_treefdr <-
 
 df_eval <-
   rbind(df_treefdr, df_bh) %>% 
-  mutate(pi0 = 100 * (N_otus - nH1) / N_otus, 
-         tidyebc = map2(detected, otus_diffs, ebc_tidy, m = N_otus,
+  mutate(pi0 = 100 * (Notus - nH1) / Notus, 
+         tidyebc = map2(detected, otus_diffs, ebc_tidy, m = Notus,
                         measures = c("BACC", "ACC", "TPR", "FDR", "F1"))) %>% 
   unnest(tidyebc) %>% 
   mutate(BACC = ifelse(is.nan(BACC), 0, BACC)) %>% 
+  mutate(FDR = ifelse(is.nan(FDR), 0, FDR)) %>% 
   select(-otus_diffs, -detected)
 
 
@@ -208,45 +221,39 @@ df_eval %>%
 
 #### Plots ####
 
-color_values <- c("Correlation" = "#C77CFF", "Phylogeny" = "#F8766D", 
-                  "Random Correlation" = "#7CAE00", "Random Phylogeny" = "#FFA500",
-                  "BH" = "#4169E1")
-
-linetype_values <- c("Correlation" = "solid", "Phylogeny" = "dotdash", 
-                     "Random Correlation" = "dashed", "Random Phylogeny" = "twodash",
-                     "BH" = "dotted")
+source("figures/theme.R")
 
 labels <- c("5" = "fc = 5", "10" = "fc = 10", "15" = "fc = 15", "20" = "fc = 20")
 
-# ## Smoothing
-# 
-# df_smoothing <- 
-#   df_eval %>% 
-#   arrange(nH1) %>% 
-#   mutate(nH1 = as_factor(nH1)) %>% 
-#   mutate(method = factor(method, levels = c("bh", "cor", "tax", "randcor", "randtax"), 
-#                          labels = c("BH", "Correlation", "Phylogeny",
-#                                     "Random Correlation", "Random Phylogeny")),
-#          method = fct_rev(method)) %>% 
-#   filter(method != "bh")
-# 
-# ggplot(df_smoothing) +
-#   aes(x = smoothing_mean, fill = method, color = method) +
-#   geom_density(alpha = 0.7, size = 1, adjust = 1) +
-#   scale_x_log10(breaks = 10^(-5*0:5)) +
-#   scale_color_manual(values = color_values, name = "Method",
-#                      aesthetics = c("color", "fill"), breaks = rev) + 
-#   labs(x = "Mean z-smoothing", y = "Density") +
-#   theme_minimal() +
-#   theme(legend.position = c(0.15, 0.8), 
-#         legend.justification = c(0, 1), 
-#         legend.background = element_blank(), 
-#         axis.title = element_text(size = 28),
-#         axis.text = element_text(size = 18),
-#         legend.title = element_text(size = 25),
-#         legend.text = element_text(size = 23))
-# 
-# ggsave("simulations/non_parametric/simu_np-smoothing.png", width = 15, height = 5, dpi = "retina")
+## Smoothing
+
+df_smoothing <-
+  df_eval %>%
+  arrange(nH1) %>%
+  mutate(nH1 = as_factor(nH1)) %>%
+  mutate(method = factor(method, levels = c("bh", "cor", "phy", "randcor", "randphy"),
+                         labels = c("BH", "Correlation", "Phylogeny",
+                                    "Random Correlation", "Random Phylogeny")),
+         method = fct_rev(method)) %>%
+  filter(method != "bh")
+
+ggplot(df_smoothing) +
+  aes(x = smoothing_mean, fill = method, color = method) +
+  geom_density(alpha = 0.7, size = 1, adjust = 1) +
+  scale_x_log10(breaks = 10^(-5*0:5)) +
+  scale_color_manual(values = color_values, name = "Method",
+                     aesthetics = c("color", "fill"), breaks = rev) +
+  labs(x = "Mean z-smoothing", y = "Density") +
+  theme_minimal() +
+  theme(legend.position = c(0.15, 0.8),
+        legend.justification = c(0, 1),
+        legend.background = element_blank(),
+        axis.title = element_text(size = 28),
+        axis.text = element_text(size = 18),
+        legend.title = element_text(size = 25),
+        legend.text = element_text(size = 23))
+
+ggsave("simulations/parametric/simu_p-smoothing.png", width = 15, height = 5, dpi = "retina")
 
 ## TPR and FDR 
 
@@ -274,6 +281,7 @@ p_TPR <-
   geom_line(aes(linetype = method, group = method)) +
   geom_point(show.legend = FALSE) +
   scale_color_manual(values = color_values) +
+  scale_linetype_manual(values = linetype_values) +
   facet_wrap(~ fc, ncol = 4, labeller = labeller(fc = labels)) +
   labs(x = NULL, y = "TPR",
        color = "Method", linetype = "Method") +
@@ -302,6 +310,7 @@ p_FDR <-
   geom_line(aes(linetype = method, group = method)) +
   geom_point(show.legend = FALSE) +
   scale_color_manual(values = color_values) +
+  scale_linetype_manual(values = linetype_values) +
   facet_wrap(~ fc, ncol = 4, labeller = labeller(fc = labels)) +
   labs(x = "Proportion of null hypothesis", y = "FDR",
        color = "Method", linetype = "Method") +
