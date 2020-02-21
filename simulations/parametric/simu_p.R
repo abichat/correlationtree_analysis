@@ -167,7 +167,21 @@ df_gathered <-
 ## Too big to be committed
 # saveRDS(df_gathered, "simulations/parametric/simus_p-df_gathered.rds")
 # df_gathered <- readRDS("simulations/parametric/simus_p-df_gathered.rds")
-## TODO: split in 8 pieces
+
+## To save the results in several <100 MB files (that can be commited)
+# allgroups <- letters[1:12]
+# 
+# groups <- sort(rep_along(seq_len(nrow(df_gathered)), allgroups))
+# allgroups %>%
+#   map(~ which(groups == .)) %>%
+#   map(~ slice(df_gathered, .)) %>%
+#   walk2(allgroups,
+#         ~ saveRDS(.x, paste0("simulations/parametric/simus_p-df_gathered_part",
+#                              .y, ".rds")))
+# df_gathered <-
+#   paste0("simulations/parametric/simus_p-df_gathered_part", allgroups, ".rds") %>%
+#   map(readRDS) %>%
+#   reduce(rbind)
 
 df_bh <- 
   df_gathered %>% 
