@@ -36,3 +36,9 @@ vignettes/*.pdf
 
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
+
+
+# Too bid .rds data
+simulations/non_parametric/simus_np-df_simus.rds
+simulations/parametric/simus_p-df_gathered.rds
+simulations/parametric/simus_p-df_simus.rds
