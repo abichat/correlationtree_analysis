@@ -45,6 +45,7 @@ tree_phy <-
 
 tree_phy$edge.length <- tree_phy$edge.length * mean_lineage / mean_lineage_length(tree_phy)
 
+print("trees done")
 
 #### Forest ####
 
@@ -91,8 +92,10 @@ tree_labels <-
          levels = c("Correlation", "Bootstrap", 
                     "Random Correlation", "Random Phylogeny", "Phylogeny"))
 
-# saveRDS(tree_labels, "forests/chaillou/chaillou-tree-labels.rds")
+saveRDS(tree_labels, "forests/chaillou/chaillou-tree-labels.rds")
 # tree_labels <- readRDS("forests/chaillou/chaillou-tree-labels.rds")
+
+print("forest done")
 
 #### Distances and models ####
 
@@ -101,19 +104,23 @@ tree_labels <-
 dist_bhv <- dist.multiPhylo(forest) # Billera-Holmes-Vogtmann
 dist_rf <- dist.topo(unroot(forest)) # Robinson-Foulds
 
-# saveRDS(dist_bhv, "forests/chaillou/chaillou-dist-bhv.rds")
-# saveRDS(dist_rf,  "forests/chaillou/chaillou-dist-rf.rds")
+saveRDS(dist_bhv, "forests/chaillou/chaillou-dist-bhv.rds")
+saveRDS(dist_rf,  "forests/chaillou/chaillou-dist-rf.rds")
 # dist_bhv <- readRDS("forests/chaillou/chaillou-dist-bhv.rds")
 # dist_rf <-  readRDS("forests/chaillou/chaillou-dist-rf.rds")
+
+print("distances done")
 
 # PCoA
 pcoa_bhv <- pcoa(dist_bhv) 
 pcoa_rf <- pcoa(dist_rf) 
 
-# saveRDS(pcoa_bhv, "forests/chaillou/chaillou-pcoa-bhv.rds")
-# saveRDS(pcoa_rf,  "forests/chaillou/chaillou-pcoa-rf.rds")
+saveRDS(pcoa_bhv, "forests/chaillou/chaillou-pcoa-bhv.rds")
+saveRDS(pcoa_rf,  "forests/chaillou/chaillou-pcoa-rf.rds")
 # pcoa_bhv <- readRDS("forests/chaillou/chaillou-pcoa-bhv.rds")
 # pcoa_rf <-  readRDS("forests/chaillou/chaillou-pcoa-rf.rds")
+
+print("pcoa done")
 
 # Distances to correlation tree
 dist_df_bhv <- tibble(Distance = dist_bhv[1:(length(tree_labels) - 1)], Type = tree_labels[-1])
