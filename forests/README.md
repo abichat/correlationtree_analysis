@@ -5,6 +5,16 @@
 
 ## Chaillou
 
+### BHV
+
+<img src="chaillou/chaillou-boxplot-bhv.png" align="center"/>
+<img src="chaillou/chaillou-pcoa-bhv.png" align="center"/>
+
+### RF
+
+<img src="chaillou/chaillou-boxplot-rf.png" align="center"/>
+<img src="chaillou/chaillou-pcoa-rf.png" align="center"/>
+
 ## Chlamydiae
 
 ### BHV
