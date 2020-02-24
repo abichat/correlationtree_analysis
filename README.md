@@ -7,7 +7,7 @@
 
 [![Codacy
 Badge](https://api.codacy.com/project/badge/Grade/ba04cd22d16047bb831608b9a7a6702f)](https://www.codacy.com/app/abichat/correlationtree_analysis?utm_source=github.com&utm_medium=referral&utm_content=abichat/correlationtree_analysis&utm_campaign=Badge_Grade)
-![Last-changedate](https://img.shields.io/badge/last%20change-2020--02--21-yellowgreen.svg)
+![Last-changedate](https://img.shields.io/badge/last%20change-2020--02--24-yellowgreen.svg)
 [![Journal](https://img.shields.io/badge/published-bioRxiv-blue)](https://www.biorxiv.org/content/10.1101/2020.01.31.928309v1)
 <!-- badges: end -->
 
@@ -23,44 +23,64 @@ to seed choice or limited number of replications in simulations.
 
 ### Forest
 
-Each folder is named after a dataset and contains several files:
+Each subfolder is named after the studied dataset and contains several
+files:
 
-  - `anaylsis_dataset.R`: R script that performs the analysis,
-  - `dataset.biom`: biom-format file with the abundance if used,
-  - `phytree_dataset.nwk`: phylogeny or taxonomy in the newick format if
-    used,
-  - `XXX.png`: figure.
+  - a script that performs the analysis (`analysis_dataset.R`),
+  - several `.png` figures corresponding to different visualizations and
+    distances,
+  - saved intermediary results to avoid long recomputation (`.rds`),
+  - evetually biom (`.biom`) or newick (`.nwk`) files for input data
+    such as abundnace tables or phylogeny.
 
-Each of these scripts:
+Each R script:
 
 1.  loads the data,
 2.  generates the forest of trees,
 3.  computes pairwise distances between trees (with BHV and RF),
-4.  performs PCoAs (one per ditance),
-5.  draws individual plots.
-
-Figures 3, S1 and S2 are drawn with these scripts.
+4.  performs PCoAs (one per distance),
+5.  draws individual plots:
+    1.  distance from each tree to the correlation tree,
+    2.  projection of the forest on the two first axis.
 
 ### Real Datasets
 
 This folder contains scripts to do differentialy abundance studies on
 datasets Chaillou, Chlamydiae and Zeller (genus and MSP level).
 
-Figures 6, 7, S5, S6, S7 and S8 are drawn with these scripts.
+As previously, it contains the R script, plots (`.png`), intermediary
+results (`.rds`) and envetually biological input data (`.biom` and
+`.nwk`).
+
+Each script compare correlation and taxonomy or phylogeny in term of
+detected species. It uses hierarchical FDR (from `structSSI`) for both
+Chaillou and Chlamydiae datasets, and z-scores smoothing (from
+`StructFDR`) for datasets from Zeller.
 
 ### Simulations
 
 This folder contains scripts that simulates datasets according to
 parametric and non parametric schemes.
 
-Figures 4, 5, S3 and S4 are drawn with these scripts.
+The parametric simulation mimics the scheme done in Xiao et al. (2018).
+It fits a negative-binomial Dirichlet-multinomial distibution on Wu
+dataset and generates new differentially abundance datasets.
+
+The non-parametric simulation uses a real dataset from Brito et al.
+(2016). It generates differentially abundant species by applying
+specified fold-change in half of the samples.
+
+For each set of parameters, at least 600 replication were done. As this
+is really time consumming, preprocessed data are saved in `.rds` files.
 
 ### Figures
 
 This folder contains scripts that draw every figure in the article. Each
 script takes its input in the corresponding folders of the repository.
 
-## Package versions used for the analysis
+## Reproducibility and packages
+
+Analysis ran under R version 3.6.1.
 
 | Package                | Version    |
 | :--------------------- | :--------- |
