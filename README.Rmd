@@ -49,15 +49,15 @@ Each R script:
 
 This folder contains scripts to do differentialy abundance studies on datasets Chaillou, Chlamydiae and Zeller (genus and MSP level).
 
-As previously, it contains the R script, plots (`.png`), intermediary results (`.rds`) and envetually biological input data (`.biom` and `.nwk`).
+As previously, it contains the R script, plots (`.png`), intermediary results (`.rds`) and eventually biological input data (`.biom` and `.nwk`).
 
-Each script compare correlation and taxonomy or phylogeny in term of detected species. It uses hierarchical FDR (from `structSSI`) for both Chaillou and Chlamydiae datasets, and z-scores smoothing (from `StructFDR`) for datasets from Zeller.
+Each script compares correlation and taxonomy (or phylogeny) in term of detected species. It uses hierarchical FDR (from `structSSI`) for both Chaillou and Chlamydiae datasets, and z-scores smoothing (from `StructFDR`) for datasets from Zeller.
 
 ### Simulations
 
-This folder contains scripts that simulates datasets according to parametric and non parametric schemes.
+This folder contains scripts that simulates datasets according to parametric (P) and non parametric (NP) schemes.
 
-The parametric simulation mimics the scheme done in Xiao et al. (2018). It fits a negative-binomial Dirichlet-multinomial distibution on Wu dataset and generates new differentially abundance datasets.
+The parametric simulation mimics the scheme used in Xiao et al. (2018). It fits a negative-binomial Dirichlet-Multinomial (DM) distibution on Wu dataset and generates new differentially abundance datasets.
 
 The non-parametric simulation uses a real dataset from Brito et al. (2016). It generates differentially abundant species by applying specified fold-change in half of the samples.
 
@@ -66,8 +66,7 @@ For each set of parameters, at least 600 replication were done. As this is reall
 
 ### Figures
 
-This folder contains scripts that draw every figure in the article. Each script takes its input in the corresponding folders of the repository.
-
+This folder contains the scripts used to produce every figure in the article. Each script takes its input in the folders of the repository and is named after the Figure number in the article (`Figure_1.R`, `Figure_S1.R`, etc). 
 
 ## Reproducibility and packages
 
@@ -106,7 +105,7 @@ BiocManager::install("biomformat")
 BiocManager::install("curatedMetagenomicData")
 BiocManager::install("ggtree")
 BiocManager::install("phyloseq")
-BiocManager::install("multtest") # dependancy for structSSI
+BiocManager::install("multtest") # dependency for structSSI
 
 if (!requireNamespace("remotes", quietly = TRUE))
     install.packages("remotes")
