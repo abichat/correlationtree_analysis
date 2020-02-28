@@ -7,7 +7,7 @@
 
 [![Codacy
 Badge](https://api.codacy.com/project/badge/Grade/ba04cd22d16047bb831608b9a7a6702f)](https://www.codacy.com/app/abichat/correlationtree_analysis?utm_source=github.com&utm_medium=referral&utm_content=abichat/correlationtree_analysis&utm_campaign=Badge_Grade)
-![Last-changedate](https://img.shields.io/badge/last%20change-2020--02--24-yellowgreen.svg)
+![Last-changedate](https://img.shields.io/badge/last%20change-2020--02--28-yellowgreen.svg)
 [![Journal](https://img.shields.io/badge/published-bioRxiv-blue)](https://www.biorxiv.org/content/10.1101/2020.01.31.928309v1)
 <!-- badges: end -->
 
@@ -129,3 +129,78 @@ remotes::install_github("abichat/correlationtree")
 remotes::install_github("abichat/evabic")
 remotes::install_url("https://cran.r-project.org/src/contrib/Archive/structSSI/structSSI_1.1.1.tar.gz") # archived from CRAN
 ```
+
+## Datasets
+
+| Dataset    | Biome   | Rank  | Taxa   | Samples | Analysis                                                    | Publication            |
+| ---------- | ------- | ----- | ------ | ------- | ----------------------------------------------------------- | ---------------------- |
+| Chlamydiae | Varied  | OTU   | 21     | 26      | [Tree](forests/chlamydiae) & [DA](real_datasets/chlamydiae) | Caporaso et al. (2011) |
+| Ravel      | Vaginal | Genus | 40     | 396     | [Tree](forests/ravel)                                       | Ravel et al. (2011)    |
+| Wu         | Gut     | OTU   | 400    | 98      | [Simulations](simulations/parametric)                       | Wu et al. (2011)       |
+| Zeller     | Gut     | Genus | 119    | 199     | [Tree](forests/zeller/) & [DA](real_datasets/zeller_genus)  | Zeller et al. (2014)   |
+| Zeller MSP | Gut     | MSP   | 878    | 199     | [DA](real_datasets/zeller_msp)                              | Zeller et al. (2014)   |
+| Chaillou   | Food    | OTU   | 499/97 | 64      | [Tree](forests/chaillou) & [DA](real_datasets/chaillou)     | Chaillou et al. (2015) |
+| Brito      | Gut     | OTU   | 77     | 112     | [Simulations](simulations/non_parametric)                   | Brito et al. (2016)    |
+
+## Bibliography
+
+<div id="refs" class="references">
+
+<div id="ref-brito_mobile_2016">
+
+Brito, I. L., S. Yilmaz, K. Huang, L. Xu, S. D. Jupiter, A. P. Jenkins,
+W. Naisilisili, et al. 2016. “Mobile Genes in the Human Microbiome Are
+Structured from Global to Individual Scales.” *Nature* 535 (7612):
+435–39. <https://doi.org/10.1038/nature18927>.
+
+</div>
+
+<div id="ref-caporaso_global_2011">
+
+Caporaso, J. G., C. L. Lauber, W. A. Walters, D. Berg-Lyons, C. A.
+Lozupone, P. J. Turnbaugh, N. Fierer, and R. Knight. 2011. “Global
+Patterns of 16S rRNA Diversity at a Depth of Millions of Sequences Per
+Sample.” *Proceedings of the National Academy of Sciences* 108
+(Supplement\_1): 4516–22. <https://doi.org/10.1073/pnas.1000080107>.
+
+</div>
+
+<div id="ref-chaillou_origin_2015">
+
+Chaillou, Stéphane, Aurélie Chaulot-Talmon, Hélène Caekebeke, Mireille
+Cardinal, Souad Christieans, Catherine Denis, Marie Hélène Desmonts, et
+al. 2015. “Origin and Ecological Selection of Core and Food-Specific
+Bacterial Communities Associated with Meat and Seafood Spoilage.” *The
+ISME Journal* 9 (5): 1105–18. <https://doi.org/10.1038/ismej.2014.202>.
+
+</div>
+
+<div id="ref-ravel_vaginal_2011">
+
+Ravel, J., P. Gajer, Z. Abdo, G. M. Schneider, S. S. K. Koenig, S. L.
+McCulle, S. Karlebach, et al. 2011. “Vaginal Microbiome of
+Reproductive-Age Women.” *Proceedings of the National Academy of
+Sciences* 108 (Supplement\_1): 4680–7.
+<https://doi.org/10.1073/pnas.1002611107>.
+
+</div>
+
+<div id="ref-wu_linking_2011">
+
+Wu, G. D., J. Chen, C. Hoffmann, K. Bittinger, Y.-Y. Chen, S. A.
+Keilbaugh, M. Bewtra, et al. 2011. “Linking Long-Term Dietary Patterns
+with Gut Microbial Enterotypes.” *Science* 334 (6052): 105–8.
+<https://doi.org/10.1126/science.1208344>.
+
+</div>
+
+<div id="ref-zeller_potential_2014">
+
+Zeller, Georg, Julien Tap, Anita Y Voigt, Shinichi Sunagawa, Jens Roat
+Kultima, Paul I Costea, Aurélien Amiot, et al. 2014. “Potential of Fecal
+Microbiota for Early‐stage Detection of Colorectal Cancer.” *Molecular
+Systems Biology* 10 (11): 766. <https://doi.org/10.15252/msb.20145645>.
+
+</div>
+
+</div>
