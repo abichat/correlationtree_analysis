@@ -57,9 +57,9 @@ Each script compares correlation and taxonomy (or phylogeny) in term of detected
 
 This folder contains scripts that simulates datasets according to parametric (P) and non parametric (NP) schemes.
 
-The parametric simulation mimics the scheme used in Xiao et al. (2018). It fits a negative-binomial Dirichlet-Multinomial (DM) distibution on Wu dataset and generates new differentially abundance datasets.
+The parametric simulation mimics the scheme used in @xiao_false_2017. It fits a negative-binomial Dirichlet-Multinomial (DM) distibution on Wu dataset and generates new differentially abundance datasets.
 
-The non-parametric simulation uses a real dataset from Brito et al. (2016). It generates differentially abundant species by applying specified fold-change in half of the samples.
+The non-parametric simulation uses a real dataset from @brito_mobile_2016. It generates differentially abundant species by applying specified fold-change in half of the samples.
 
 For each set of parameters, at least 600 replication were done. As this is really time consumming, preprocessed data are saved in `.rds` files.
 

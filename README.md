@@ -49,10 +49,10 @@ This folder contains scripts to do differentialy abundance studies on
 datasets Chaillou, Chlamydiae and Zeller (genus and MSP level).
 
 As previously, it contains the R script, plots (`.png`), intermediary
-results (`.rds`) and envetually biological input data (`.biom` and
+results (`.rds`) and eventually biological input data (`.biom` and
 `.nwk`).
 
-Each script compare correlation and taxonomy or phylogeny in term of
+Each script compares correlation and taxonomy (or phylogeny) in term of
 detected species. It uses hierarchical FDR (from `structSSI`) for both
 Chaillou and Chlamydiae datasets, and z-scores smoothing (from
 `StructFDR`) for datasets from Zeller.
@@ -60,11 +60,12 @@ Chaillou and Chlamydiae datasets, and z-scores smoothing (from
 ### Simulations
 
 This folder contains scripts that simulates datasets according to
-parametric and non parametric schemes.
+parametric (P) and non parametric (NP) schemes.
 
-The parametric simulation mimics the scheme done in Xiao et al. (2018).
-It fits a negative-binomial Dirichlet-multinomial distibution on Wu
-dataset and generates new differentially abundance datasets.
+The parametric simulation mimics the scheme used in Xiao, Cao, and Chen
+(2017). It fits a negative-binomial Dirichlet-Multinomial (DM)
+distibution on Wu dataset and generates new differentially abundance
+datasets.
 
 The non-parametric simulation uses a real dataset from Brito et al.
 (2016). It generates differentially abundant species by applying
@@ -75,8 +76,10 @@ is really time consumming, preprocessed data are saved in `.rds` files.
 
 ### Figures
 
-This folder contains scripts that draw every figure in the article. Each
-script takes its input in the corresponding folders of the repository.
+This folder contains the scripts used to produce every figure in the
+article. Each script takes its input in the folders of the repository
+and is named after the Figure number in the article (`Figure_1.R`,
+`Figure_S1.R`, etc).
 
 ## Reproducibility and packages
 
@@ -121,7 +124,7 @@ BiocManager::install("biomformat")
 BiocManager::install("curatedMetagenomicData")
 BiocManager::install("ggtree")
 BiocManager::install("phyloseq")
-BiocManager::install("multtest") # dependancy for structSSI
+BiocManager::install("multtest") # dependency for structSSI
 
 if (!requireNamespace("remotes", quietly = TRUE))
     install.packages("remotes")
@@ -191,6 +194,16 @@ Wu, G. D., J. Chen, C. Hoffmann, K. Bittinger, Y.-Y. Chen, S. A.
 Keilbaugh, M. Bewtra, et al. 2011. “Linking Long-Term Dietary Patterns
 with Gut Microbial Enterotypes.” *Science* 334 (6052): 105–8.
 <https://doi.org/10.1126/science.1208344>.
+
+</div>
+
+<div id="ref-xiao_false_2017">
+
+Xiao, Jian, Hongyuan Cao, and Jun Chen. 2017. “False Discovery Rate
+Control Incorporating Phylogenetic Tree Increases Detection Power in
+Microbiome-Wide Multiple Testing.” Edited by Oliver Stegle.
+*Bioinformatics* 33 (18): 2873–81.
+<https://doi.org/10.1093/bioinformatics/btx311>.
 
 </div>
 
