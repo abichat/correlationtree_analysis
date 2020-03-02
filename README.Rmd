@@ -68,6 +68,20 @@ For each set of parameters, at least 600 replication were done. As this is reall
 
 This folder contains the scripts used to produce every figure in the article. Each script takes its input in the folders of the repository and is named after the Figure number in the article (`Figure_1.R`, `Figure_S1.R`, etc). 
 
+## Datasets
+
+
+| Dataset    | Biome   | Rank  | Taxa   | Samples | Analysis                                                    | Publication            |
+|------------|---------|-------|--------|---------|-------------------------------------------------------------|------------------------|
+| Chlamydiae | Varied  | OTU   | 21     | 26      | [Tree](forests/chlamydiae) & [DA](real_datasets/chlamydiae) | @caporaso_global_2011  |  
+| Ravel      | Vaginal | Genus | 40     | 396     | [Tree](forests/ravel)                                       | @ravel_vaginal_2011    |
+| Wu         | Gut     | OTU   | 400    | 98      | [Simulations](simulations/parametric)                       | @wu_linking_2011       |
+| Zeller     | Gut     | Genus | 119    | 199     | [Tree](forests/zeller/) & [DA](real_datasets/zeller_genus)  | @zeller_potential_2014 | 
+| Zeller MSP | Gut     | MSP   | 878    | 199     | [DA](real_datasets/zeller_msp)                              | @zeller_potential_2014 |
+| Chaillou   | Food    | OTU   | 499/97 | 64      | [Tree](forests/chaillou) & [DA](real_datasets/chaillou)     | @chaillou_origin_2015  | 
+| Brito      | Gut     | OTU   | 77     | 112     | [Simulations](simulations/non_parametric)                   | @brito_mobile_2016     |
+
+
 ## Reproducibility and packages
 
 Analysis ran under R version `r paste(R.version$major, R.version$minor, sep = ".")`.
@@ -89,7 +103,7 @@ packages <-
 df_package_version <-
   packages %>%
   c(., "dplyr", "tidyr", "ggplot2", "purrr", "readr", "stringr", "forcats", "furrr") %>%
-  unique() %>%
+  unique() %>% 
   sort() %>%
   enframe(value = "Package", name = NULL) %>%
   mutate(Version = map_chr(Package, purrr::compose(as.character, packageVersion)))
@@ -113,19 +127,5 @@ remotes::install_github("abichat/correlationtree")
 remotes::install_github("abichat/evabic")
 remotes::install_url("https://cran.r-project.org/src/contrib/Archive/structSSI/structSSI_1.1.1.tar.gz") # archived from CRAN
 ```
-
-## Datasets
-
-
-| Dataset    | Biome   | Rank  | Taxa   | Samples | Analysis                                                    | Publication            |
-|------------|---------|-------|--------|---------|-------------------------------------------------------------|------------------------|
-| Chlamydiae | Varied  | OTU   | 21     | 26      | [Tree](forests/chlamydiae) & [DA](real_datasets/chlamydiae) | @caporaso_global_2011  |  
-| Ravel      | Vaginal | Genus | 40     | 396     | [Tree](forests/ravel)                                       | @ravel_vaginal_2011    |
-| Wu         | Gut     | OTU   | 400    | 98      | [Simulations](simulations/parametric)                       | @wu_linking_2011       |
-| Zeller     | Gut     | Genus | 119    | 199     | [Tree](forests/zeller/) & [DA](real_datasets/zeller_genus)  | @zeller_potential_2014 | 
-| Zeller MSP | Gut     | MSP   | 878    | 199     | [DA](real_datasets/zeller_msp)                              | @zeller_potential_2014 |
-| Chaillou   | Food    | OTU   | 499/97 | 64      | [Tree](forests/chaillou) & [DA](real_datasets/chaillou)     | @chaillou_origin_2015  | 
-| Brito      | Gut     | OTU   | 77     | 112     | [Simulations](simulations/non_parametric)                   | @brito_mobile_2016     |
-
 
 ## Bibliography

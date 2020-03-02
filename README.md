@@ -7,7 +7,7 @@
 
 [![Codacy
 Badge](https://api.codacy.com/project/badge/Grade/ba04cd22d16047bb831608b9a7a6702f)](https://www.codacy.com/app/abichat/correlationtree_analysis?utm_source=github.com&utm_medium=referral&utm_content=abichat/correlationtree_analysis&utm_campaign=Badge_Grade)
-![Last-changedate](https://img.shields.io/badge/last%20change-2020--02--28-yellowgreen.svg)
+![Last-changedate](https://img.shields.io/badge/last%20change-2020--03--02-yellowgreen.svg)
 [![Journal](https://img.shields.io/badge/published-bioRxiv-blue)](https://www.biorxiv.org/content/10.1101/2020.01.31.928309v1)
 <!-- badges: end -->
 
@@ -79,7 +79,20 @@ is really time consumming, preprocessed data are saved in `.rds` files.
 This folder contains the scripts used to produce every figure in the
 article. Each script takes its input in the folders of the repository
 and is named after the Figure number in the article (`Figure_1.R`,
-`Figure_S1.R`, etc).
+`Figure_S1.R`,
+etc).
+
+## Datasets
+
+| Dataset    | Biome   | Rank  | Taxa   | Samples | Analysis                                                    | Publication            |
+| ---------- | ------- | ----- | ------ | ------- | ----------------------------------------------------------- | ---------------------- |
+| Chlamydiae | Varied  | OTU   | 21     | 26      | [Tree](forests/chlamydiae) & [DA](real_datasets/chlamydiae) | Caporaso et al. (2011) |
+| Ravel      | Vaginal | Genus | 40     | 396     | [Tree](forests/ravel)                                       | Ravel et al. (2011)    |
+| Wu         | Gut     | OTU   | 400    | 98      | [Simulations](simulations/parametric)                       | Wu et al. (2011)       |
+| Zeller     | Gut     | Genus | 119    | 199     | [Tree](forests/zeller/) & [DA](real_datasets/zeller_genus)  | Zeller et al. (2014)   |
+| Zeller MSP | Gut     | MSP   | 878    | 199     | [DA](real_datasets/zeller_msp)                              | Zeller et al. (2014)   |
+| Chaillou   | Food    | OTU   | 499/97 | 64      | [Tree](forests/chaillou) & [DA](real_datasets/chaillou)     | Chaillou et al. (2015) |
+| Brito      | Gut     | OTU   | 77     | 112     | [Simulations](simulations/non_parametric)                   | Brito et al. (2016)    |
 
 ## Reproducibility and packages
 
@@ -90,12 +103,12 @@ Analysis ran under R version 3.6.1.
 | ape                    | 5.3        |
 | biomformat             | 1.12.0     |
 | broom                  | 0.5.4      |
-| correlationtree        | 0.0.0.9003 |
+| correlationtree        | 0.0.1      |
 | cowplot                | 1.0.0      |
 | curatedMetagenomicData | 1.14.1     |
 | distory                | 1.4.3      |
 | dplyr                  | 0.8.4      |
-| evabic                 | 0.0.0.9007 |
+| evabic                 | 0.0.1      |
 | forcats                | 0.4.0      |
 | furrr                  | 0.1.0      |
 | ggplot2                | 3.2.1      |
@@ -113,7 +126,7 @@ Analysis ran under R version 3.6.1.
 | structSSI              | 1.1.1      |
 | tidyr                  | 1.0.2      |
 | tidyverse              | 1.3.0      |
-| yatah                  | 0.0.1      |
+| yatah                  | 0.1.0      |
 
 To install non-CRAN packages, run these lines:
 
@@ -132,18 +145,6 @@ remotes::install_github("abichat/correlationtree")
 remotes::install_github("abichat/evabic")
 remotes::install_url("https://cran.r-project.org/src/contrib/Archive/structSSI/structSSI_1.1.1.tar.gz") # archived from CRAN
 ```
-
-## Datasets
-
-| Dataset    | Biome   | Rank  | Taxa   | Samples | Analysis                                                    | Publication            |
-| ---------- | ------- | ----- | ------ | ------- | ----------------------------------------------------------- | ---------------------- |
-| Chlamydiae | Varied  | OTU   | 21     | 26      | [Tree](forests/chlamydiae) & [DA](real_datasets/chlamydiae) | Caporaso et al. (2011) |
-| Ravel      | Vaginal | Genus | 40     | 396     | [Tree](forests/ravel)                                       | Ravel et al. (2011)    |
-| Wu         | Gut     | OTU   | 400    | 98      | [Simulations](simulations/parametric)                       | Wu et al. (2011)       |
-| Zeller     | Gut     | Genus | 119    | 199     | [Tree](forests/zeller/) & [DA](real_datasets/zeller_genus)  | Zeller et al. (2014)   |
-| Zeller MSP | Gut     | MSP   | 878    | 199     | [DA](real_datasets/zeller_msp)                              | Zeller et al. (2014)   |
-| Chaillou   | Food    | OTU   | 499/97 | 64      | [Tree](forests/chaillou) & [DA](real_datasets/chaillou)     | Chaillou et al. (2015) |
-| Brito      | Gut     | OTU   | 77     | 112     | [Simulations](simulations/non_parametric)                   | Brito et al. (2016)    |
 
 ## Bibliography
 
