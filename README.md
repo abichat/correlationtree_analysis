@@ -7,7 +7,7 @@
 
 [![Codacy
 Badge](https://api.codacy.com/project/badge/Grade/ba04cd22d16047bb831608b9a7a6702f)](https://www.codacy.com/app/abichat/correlationtree_analysis?utm_source=github.com&utm_medium=referral&utm_content=abichat/correlationtree_analysis&utm_campaign=Badge_Grade)
-![Last-changedate](https://img.shields.io/badge/last%20change-2020--03--02-yellowgreen.svg)
+![Last-changedate](https://img.shields.io/badge/last%20change-2020--03--10-yellowgreen.svg)
 [![Journal](https://img.shields.io/badge/published-bioRxiv-blue)](https://www.biorxiv.org/content/10.1101/2020.01.31.928309v1)
 <!-- badges: end -->
 
@@ -142,7 +142,6 @@ BiocManager::install("multtest") # dependency for structSSI
 if (!requireNamespace("remotes", quietly = TRUE))
     install.packages("remotes")
 remotes::install_github("abichat/correlationtree")
-remotes::install_github("abichat/evabic")
 remotes::install_url("https://cran.r-project.org/src/contrib/Archive/structSSI/structSSI_1.1.1.tar.gz") # archived from CRAN
 ```
 
