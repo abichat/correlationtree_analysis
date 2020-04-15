@@ -7,8 +7,8 @@
 
 [![Codacy
 Badge](https://api.codacy.com/project/badge/Grade/ba04cd22d16047bb831608b9a7a6702f)](https://www.codacy.com/app/abichat/correlationtree_analysis?utm_source=github.com&utm_medium=referral&utm_content=abichat/correlationtree_analysis&utm_campaign=Badge_Grade)
-![Last-changedate](https://img.shields.io/badge/last%20change-2020--03--10-yellowgreen.svg)
-[![Journal](https://img.shields.io/badge/published-bioRxiv-blue)](https://www.biorxiv.org/content/10.1101/2020.01.31.928309v1)
+![Last-commit](https://img.shields.io/github/last-commit/abichat/correlationtree_analysis.svg)
+[![Journal](https://img.shields.io/badge/published-frontiers-blue)](https://www.frontiersin.org/articles/10.3389/fmicb.2020.00649/full)
 <!-- badges: end -->
 
 This repository contains analysis done in the paper **Incorporating
