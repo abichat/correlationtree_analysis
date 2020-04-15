@@ -7,14 +7,14 @@
 
 [![Codacy
 Badge](https://api.codacy.com/project/badge/Grade/ba04cd22d16047bb831608b9a7a6702f)](https://www.codacy.com/app/abichat/correlationtree_analysis?utm_source=github.com&utm_medium=referral&utm_content=abichat/correlationtree_analysis&utm_campaign=Badge_Grade)
-![Last-commit](https://img.shields.io/github/last-commit/abichat/correlationtree_analysis.svg)
-[![Journal](https://img.shields.io/badge/published-frontiers-blue)](https://www.frontiersin.org/articles/10.3389/fmicb.2020.00649/full)
+![last-commit](https://img.shields.io/github/last-commit/abichat/correlationtree_analysis.svg)
+[![Journal](https://img.shields.io/badge/published-frontiers-blue)](https://doi.org/10.3389/fmicb.2020.00649)
 <!-- badges: end -->
 
 This repository contains analysis done in the paper **Incorporating
-phylogenetic information in microbiome abundance studies has no effect
-on detection power and FDR control**
-([bioRxiv](https://www.biorxiv.org/content/10.1101/2020.01.31.928309v1)).
+Phylogenetic Information in Microbiome Differential Abundance Studies
+Has No Effect on Detection Power and FDR Control** ([Frontiers in
+Microbiology](https://doi.org/10.3389/fmicb.2020.00649)).
 
 Some results might be slightly different from those in the article due
 to seed choice or limited number of replications in simulations.
